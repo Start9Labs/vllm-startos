@@ -1,23 +1,16 @@
 import { i18n } from './i18n'
 import { sdk } from './sdk'
 import { storeJson } from './fileModels/store.json'
-import { credentialsJson } from './fileModels/credentials.json'
 import { apiPort } from './utils'
 
 export const main = sdk.setupMain(async ({ effects }) => {
   console.info(i18n('Starting vLLM!'))
 
+  // The reactive `syncCredentials` init keeps the public credentials.json
+  // in sync with store.json's apiKey — nothing to do here.
   const store = await storeJson.read((s) => s).const(effects)
   const serveArgs = store?.serveArgs
   const apiKey = store?.apiKey
-
-  // Keep the public credentials file in sync with store.json on every
-  // start. Idempotent — safe to run after restore-from-backup, version
-  // upgrade (e.g. when the public volume is freshly created), or any
-  // future apiKey rotation.
-  if (apiKey) {
-    await credentialsJson.write(effects, { apiKey })
-  }
 
   const vllmSub = await sdk.SubContainer.of(
     effects,
