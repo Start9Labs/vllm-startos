@@ -2,6 +2,7 @@ import { utils } from '@start9labs/start-sdk'
 import { i18n } from '../i18n'
 import { sdk } from '../sdk'
 import { storeJson } from '../fileModels/store.json'
+import { credentialsJson } from '../fileModels/credentials.json'
 import { getApiCredentials } from '../actions/getApiCredentials'
 import { setModel } from '../actions/setModel'
 
@@ -14,6 +15,10 @@ export const initializeService = sdk.setupOnInit(async (effects, kind) => {
     apiKey,
     serveArgs: undefined,
   })
+
+  // Mirror the API key to the public volume so that dependent services
+  // (e.g. open-webui) can read it via mountDependency.
+  await credentialsJson.write(effects, { apiKey })
 
   await sdk.action.createOwnTask(effects, getApiCredentials, 'critical', {
     reason: i18n('Retrieve your API key so you can connect to vLLM'),
