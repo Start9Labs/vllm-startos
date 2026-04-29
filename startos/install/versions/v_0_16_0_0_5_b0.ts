@@ -20,11 +20,5 @@ export const v_0_16_0_0_5_b0 = VersionInfo.of({
   migrations: {
     up: async ({ effects }) => {},
     down: async ({ effects }) => {},
-    other: {
-      '#nvidia:0.20.0:0.5-beta.0': {
-        up: async ({ effects }) => {},
-        down: async ({ effects }) => {},
-      },
-    },
   },
 })
