@@ -6,8 +6,6 @@ import { apiPort } from './utils'
 export const main = sdk.setupMain(async ({ effects }) => {
   console.info(i18n('Starting vLLM!'))
 
-  // The reactive `syncCredentials` init keeps the public credentials.json
-  // in sync with store.json's apiKey — nothing to do here.
   const store = await storeJson.read((s) => s).const(effects)
   const serveArgs = store?.serveArgs
   const apiKey = store?.apiKey
