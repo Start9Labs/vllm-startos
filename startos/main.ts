@@ -7,7 +7,7 @@ export const main = sdk.setupMain(async ({ effects }) => {
   console.info(i18n('Starting vLLM!'))
 
   const store = await storeJson.read((s) => s).const(effects)
-  const selectedModel = store?.selectedModel
+  const serveArgs = store?.serveArgs
   const apiKey = store?.apiKey
 
   const vllmSub = await sdk.SubContainer.of(
@@ -22,8 +22,17 @@ export const main = sdk.setupMain(async ({ effects }) => {
     'vllm-sub',
   )
 
-  if (!selectedModel) {
-    return sdk.Daemons.of(effects).addDaemon('primary', {
+  // Refresh the linker cache so Triton can find the host-injected libcuda.so.1.
+  // The nvidia-container-toolkit mounts driver libs into the container, but on
+  // some aarch64 images they are not in the cached search paths.
+  const base = sdk.Daemons.of(effects).addOneshot('ldconfig', {
+    subcontainer: vllmSub,
+    exec: { command: ['ldconfig'] },
+    requires: [],
+  })
+
+  if (!serveArgs || serveArgs.length === 0) {
+    return base.addDaemon('primary', {
       subcontainer: vllmSub,
       exec: { command: ['sleep', 'infinity'] },
       ready: {
@@ -36,14 +45,14 @@ export const main = sdk.setupMain(async ({ effects }) => {
             ),
           }),
       },
-      requires: [],
+      requires: ['ldconfig'],
     })
   }
 
   const command: [string, ...string[]] = [
     'vllm',
     'serve',
-    selectedModel,
+    ...serveArgs,
     '--host',
     '0.0.0.0',
     '--port',
@@ -56,22 +65,27 @@ export const main = sdk.setupMain(async ({ effects }) => {
     command.push('--api-key', apiKey)
   }
 
-  return sdk.Daemons.of(effects).addDaemon('primary', {
+  return base.addDaemon('primary', {
     subcontainer: vllmSub,
     exec: {
       command,
       env: {
         HF_HUB_CACHE: '/data/models',
+        PYTHONUNBUFFERED: '1',
+        HF_HUB_VERBOSITY: 'info',
       },
     },
     ready: {
       display: i18n('vLLM API'),
+      // Model download + load + JIT compile can take 30+ minutes for large
+      // weights (e.g. 35B-A3B NVFP4 from a cold cache).
+      gracePeriod: 60 * 60 * 1000,
       fn: () =>
         sdk.healthCheck.checkPortListening(effects, apiPort, {
           successMessage: i18n('The vLLM API is ready'),
           errorMessage: i18n('The vLLM API is not ready'),
         }),
     },
-    requires: [],
+    requires: ['ldconfig'],
   })
 })

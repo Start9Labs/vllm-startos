@@ -1,11 +1,15 @@
 # overrides to s9pk.mk must precede the include statement
-TARGETS := generic rocm
-ARCHES := x86 arm
+TARGETS := nvidia rocm arches
 
 include s9pk.mk
 
-generic:
-	$(MAKE) arches VARIANT=generic
+.PHONY += nvidia nvidia/x86 nvidia/arm rocm
+
+nvidia: nvidia/x86 nvidia/arm
+
+nvidia/%:
+	VARIANT=nvidia $(MAKE) $*
 
 rocm:
-	ROCM=1 $(MAKE) arches VARIANT=rocm ARCHES=x86
+	VARIANT=rocm $(MAKE) arches ARCHES=x86
+

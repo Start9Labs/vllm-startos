@@ -12,7 +12,7 @@ export const initializeService = sdk.setupOnInit(async (effects, kind) => {
 
   await storeJson.write(effects, {
     apiKey,
-    selectedModel: undefined,
+    serveArgs: undefined,
   })
 
   await sdk.action.createOwnTask(effects, getApiCredentials, 'critical', {
