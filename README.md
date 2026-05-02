@@ -23,6 +23,7 @@
 - [Network Access and Interfaces](#network-access-and-interfaces)
 - [Actions (StartOS UI)](#actions-startos-ui)
 - [Dependencies](#dependencies)
+- [Dependent Services](#dependent-services)
 - [Backups and Restore](#backups-and-restore)
 - [Health Checks](#health-checks)
 - [Limitations and Differences](#limitations-and-differences)
@@ -52,12 +53,17 @@ The `nvidia` variant declares `nvidiaContainer: true`, so it requires the NVIDIA
 
 | Volume | Mount point | Purpose |
 |--------|-------------|---------|
-| `main` | `/data` | Model weights cache and StartOS-managed config |
+| `main` | `/data` | Model weights cache and StartOS-managed private config |
+| `public` | -- | Read-only-mountable file(s) for dependent services (see [Dependent Services](#dependent-services)) |
 
-Layout under `/data`:
+Layout under `/data` (the `main` volume):
 
 - `models/` -- HuggingFace model cache (`HF_HUB_CACHE=/data/models`, also passed as `--download-dir`)
 - `store.json` -- StartOS-managed package state (API key, current `vllm serve` argv)
+
+The `public` volume contains:
+
+- `credentials.json` -- `{ "apiKey": "<22-char string>" }`. Mirrors `store.apiKey`. Maintained by a reactive init script so it is always up-to-date with the private store, including after fresh install, version upgrade, or restore-from-backup.
 
 ---
 
@@ -152,9 +158,31 @@ None.
 
 ---
 
+## Dependent Services
+
+Other StartOS packages can consume vLLM as an OpenAI-compatible backend (e.g. Open WebUI). To pick up the API key without invoking an action, mount the `public` volume read-only via `mountDependency`:
+
+```ts
+sdk.Mounts.of().mountDependency<typeof VllmManifest>({
+  dependencyId: 'vllm',
+  volumeId: 'public',
+  subpath: null,
+  mountpoint: '/vllm-public',
+  readonly: true,
+})
+```
+
+Then read `/vllm-public/credentials.json` and use `apiKey` to authenticate against the vLLM API.
+
+The `public` volume is intentionally separate from `main`: `main` holds private state (model weights, the unhashed key in `store.json`), while `public` exposes only the bits vLLM is OK with dependents reading.
+
+---
+
 ## Backups and Restore
 
-**Included in backup:** the entire `main` volume, which means the model cache and `store.json` (API key + serve args).
+**Included in backup:** the entire `main` volume -- model cache and `store.json` (API key + serve args).
+
+**Not included:** the `public` volume. It's a derived projection of `store.apiKey`; the reactive init script rewrites `credentials.json` on first start after a restore, so dependents see the (restored) key without re-running any action.
 
 **Note:** model weight files are large (a single 7B AWQ model is ~4 GB; a 70B model is 35--80 GB depending on quant). Backups will be correspondingly large unless `Delete Model Cache` is run first.
 
@@ -179,7 +207,7 @@ Messages:
 
 ## Limitations and Differences
 
-1. **Variants are mutually exclusive.** A single StartOS host runs one of `nvidia`, `rocm`, or `cpu` -- swapping requires uninstalling and reinstalling with the appropriate `.s9pk`. There is a registered migration between the cpu/rocm and nvidia variant version IDs but it does not move data automatically.
+1. **Variants are mutually exclusive.** A single StartOS host runs one of `nvidia`, `rocm`, or `cpu` -- swapping requires uninstalling and reinstalling with the appropriate `.s9pk`. All three variants share a single version chain, so version IDs match across variants.
 2. **No CLI access.** Model management is via the **Set Model** and **Delete Model Cache** actions, not `vllm` CLI on the host.
 3. **`--host`, `--port`, `--download-dir`, `--api-key` are fixed.** They cannot be overridden through the **Custom** argv input -- StartOS appends them after your args.
 4. **Whitespace-only argv splitting.** The custom argv input cannot represent arguments containing spaces (notably JSON-valued flags like `--speculative-config '{"method":"..."}'`). Curated presets are the only way to use those.
@@ -225,6 +253,7 @@ variants:
     arches: [x86_64, aarch64]
 volumes:
   main: /data
+  public: (mountable read-only by dependents; contains credentials.json)
 ports:
   api: 8000
 dependencies: none
@@ -245,5 +274,8 @@ store_file: /data/store.json
 store_shape:
   apiKey: string
   serveArgs: string[]
+public_files:
+  credentials.json:
+    apiKey: string
 health_check_grace_period_ms: 3600000
 ```
