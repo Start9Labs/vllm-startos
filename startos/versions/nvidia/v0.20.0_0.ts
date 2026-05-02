@@ -1,7 +1,7 @@
 import { VersionInfo } from '@start9labs/start-sdk'
 
-export const v_0_20_0_0_4_b0 = VersionInfo.of({
-  version: '#nvidia:0.20.0:0.4-beta.0',
+export const v_0_20_0_0 = VersionInfo.of({
+  version: '#nvidia:0.20.0:0',
   releaseNotes: {
     en_US: 'Initial release of vLLM for NVIDIA GPUs using upstream container',
     es_ES:
@@ -16,7 +16,7 @@ export const v_0_20_0_0_4_b0 = VersionInfo.of({
     up: async ({ effects }) => {},
     down: async ({ effects }) => {},
     other: {
-      '0.16.0:0.4-beta.0': {
+      '0.16.0:0': {
         up: async ({ effects }) => {},
         down: async ({ effects }) => {},
       },
