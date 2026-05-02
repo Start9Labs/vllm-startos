@@ -1,0 +1,23 @@
+name: Release
+
+on:
+  # Disabled pending variant decision (nvidia + cpu vs. all three).
+  # Re-enable by restoring the tag push trigger below.
+  workflow_dispatch:
+  # push:
+  #   tags:
+  #     - 'v*.*'
+
+jobs:
+  release:
+    uses: start9labs/shared-workflows/.github/workflows/release.yml@master
+    with:
+      # FREE_DISK_SPACE: true
+      RELEASE_REGISTRY: ${{ vars.RELEASE_REGISTRY }}
+      S3_S9PKS_BASE_URL: ${{ vars.S3_S9PKS_BASE_URL }}
+    secrets:
+      DEV_KEY: ${{ secrets.DEV_KEY }}
+      S3_ACCESS_KEY: ${{ secrets.S3_ACCESS_KEY }}
+      S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY }}
+    permissions:
+      contents: write
