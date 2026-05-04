@@ -63,7 +63,7 @@ export const manifest = setupManifest({
   donationUrl: null,
   docsUrls: ['https://docs.vllm.ai/'],
   description: { short, long },
-  volumes: ['main'],
+  volumes: ['main', 'public'],
   images: {
     vllm: mutable(
       imageConfigs[variant as keyof typeof imageConfigs] ?? imageConfigs.cpu,

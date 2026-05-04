@@ -10,6 +10,8 @@ export const initializeService = sdk.setupOnInit(async (effects, kind) => {
 
   const apiKey = utils.getDefaultString({ charset: 'a-z,A-Z,0-9', len: 22 })
 
+  // Write apiKey to the private store. The reactive `syncCredentials`
+  // init mirrors it to the public credentials.json automatically.
   await storeJson.write(effects, {
     apiKey,
     serveArgs: undefined,
