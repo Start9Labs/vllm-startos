@@ -117,7 +117,7 @@ export const models: ModelPreset[] = [
           '--reasoning-parser',
           'qwen3',
           '--speculative-config',
-          '{"method":"qwen3_5_mtp","num_speculative_tokens":3}',
+          '{"method":"mtp","num_speculative_tokens":3}',
           '--enable-auto-tool-choice',
           '--tool-call-parser',
           'qwen3_coder',
