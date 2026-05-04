@@ -24,9 +24,11 @@ export type ModelPreset = {
 // CUDA graphs, and Python overhead.
 //
 // Tool-call parsers (per model family):
-//   Qwen3 / Qwen3.6 / Qwen3-Next  → hermes (XML-style <tool_call> blocks,
-//                                   works with the model's built-in chat
-//                                   template; no override needed)
+//   Qwen3.6                       → qwen3_coder (Qwen3.6's chat template emits
+//                                   <function=name><parameter=key>...</parameter>
+//                                   </function> XML; hermes silently passes it
+//                                   through as plain text)
+//   Qwen3 / Qwen3-Next            → hermes (older JSON-inside-<tool_call> format)
 //   Llama 3.3                     → llama3_json + tool_chat_template_llama3.2_json.jinja
 //   Mistral Small 3.2             → mistral (used together with
 //                                   --tokenizer-mode mistral)
@@ -48,7 +50,7 @@ export const models: ModelPreset[] = [
           'flashinfer_cutlass',
           '--enable-auto-tool-choice',
           '--tool-call-parser',
-          'hermes',
+          'qwen3_coder',
         ],
         minMemoryGB: 32,
       },
@@ -61,7 +63,7 @@ export const models: ModelPreset[] = [
           'qwen3',
           '--enable-auto-tool-choice',
           '--tool-call-parser',
-          'hermes',
+          'qwen3_coder',
         ],
         minMemoryGB: 30,
       },
@@ -74,7 +76,7 @@ export const models: ModelPreset[] = [
           'qwen3',
           '--enable-auto-tool-choice',
           '--tool-call-parser',
-          'hermes',
+          'qwen3_coder',
         ],
         minMemoryGB: 30,
       },
@@ -87,7 +89,7 @@ export const models: ModelPreset[] = [
           'qwen3',
           '--enable-auto-tool-choice',
           '--tool-call-parser',
-          'hermes',
+          'qwen3_coder',
         ],
         minMemoryGB: 45,
       },
@@ -118,7 +120,7 @@ export const models: ModelPreset[] = [
           '{"method":"qwen3_5_mtp","num_speculative_tokens":3}',
           '--enable-auto-tool-choice',
           '--tool-call-parser',
-          'hermes',
+          'qwen3_coder',
         ],
         minMemoryGB: 28,
       },
@@ -131,7 +133,7 @@ export const models: ModelPreset[] = [
           'qwen3',
           '--enable-auto-tool-choice',
           '--tool-call-parser',
-          'hermes',
+          'qwen3_coder',
         ],
         minMemoryGB: 25,
       },
@@ -144,7 +146,7 @@ export const models: ModelPreset[] = [
           'qwen3',
           '--enable-auto-tool-choice',
           '--tool-call-parser',
-          'hermes',
+          'qwen3_coder',
         ],
         minMemoryGB: 25,
       },
@@ -157,7 +159,7 @@ export const models: ModelPreset[] = [
           'qwen3',
           '--enable-auto-tool-choice',
           '--tool-call-parser',
-          'hermes',
+          'qwen3_coder',
         ],
         minMemoryGB: 35,
       },
