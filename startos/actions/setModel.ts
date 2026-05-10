@@ -45,6 +45,10 @@ const allVariants = {
     name: i18n('Mistral Small 3.2 24B Instruct'),
     spec: InputSpec.of({}),
   },
+  'nemotron3-elastic-30b-a3b': {
+    name: i18n('Nemotron 3 Elastic 30B-A3B'),
+    spec: InputSpec.of({}),
+  },
   custom: customVariant,
 }
 

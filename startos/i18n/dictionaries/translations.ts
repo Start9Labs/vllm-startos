@@ -31,6 +31,7 @@ export default {
     29: 'Qwen3 30B-A3B',
     30: 'Llama 3.3 70B Instruct',
     31: 'Mistral Small 3.2 24B Instruct',
+    32: 'Nemotron 3 Elastic 30B-A3B',
   },
   de_DE: {
     0: 'Starte vLLM!',
@@ -62,6 +63,7 @@ export default {
     29: 'Qwen3 30B-A3B',
     30: 'Llama 3.3 70B Instruct',
     31: 'Mistral Small 3.2 24B Instruct',
+    32: 'Nemotron 3 Elastic 30B-A3B',
   },
   pl_PL: {
     0: 'Uruchamianie vLLM!',
@@ -93,6 +95,7 @@ export default {
     29: 'Qwen3 30B-A3B',
     30: 'Llama 3.3 70B Instruct',
     31: 'Mistral Small 3.2 24B Instruct',
+    32: 'Nemotron 3 Elastic 30B-A3B',
   },
   fr_FR: {
     0: 'Démarrage de vLLM !',
@@ -124,5 +127,6 @@ export default {
     29: 'Qwen3 30B-A3B',
     30: 'Llama 3.3 70B Instruct',
     31: 'Mistral Small 3.2 24B Instruct',
+    32: 'Nemotron 3 Elastic 30B-A3B',
   },
 } satisfies Record<string, LangDict>

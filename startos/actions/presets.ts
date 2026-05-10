@@ -32,6 +32,8 @@ export type ModelPreset = {
 //   Llama 3.3                     → llama3_json + tool_chat_template_llama3.2_json.jinja
 //   Mistral Small 3.2             → mistral (used together with
 //                                   --tokenizer-mode mistral)
+//   Nemotron 3 (Nano / Elastic)   → qwen3_coder for tools, nemotron_v3 for
+//                                   the <think>…</think> reasoning trace.
 //
 // Tool-call chat templates ship inside the vLLM image at
 // /vllm-workspace/examples/.
@@ -393,6 +395,69 @@ export const models: ModelPreset[] = [
           'mistral',
         ],
         minMemoryGB: 30,
+      },
+    },
+  },
+  {
+    // NVIDIA only ships NVFP4 + FP8 elastic checkpoints (no AWQ, no BF16),
+    // so the older-NVIDIA tier is intentionally omitted — pre-Hopper cards
+    // can't run FP8 efficiently.
+    id: 'nemotron3-elastic-30b-a3b',
+    displayName: 'Nemotron 3 Elastic 30B-A3B',
+    configs: {
+      'nvidia-blackwell': {
+        args: [
+          'nvidia/NVIDIA-Nemotron-Labs-3-Elastic-30B-A3B-NVFP4',
+          '--trust-remote-code',
+          '--max-model-len',
+          '131072',
+          '--max-num-seqs',
+          '8',
+          '--gpu-memory-utilization',
+          '0.9',
+          '--async-scheduling',
+          '--reasoning-parser',
+          'nemotron_v3',
+          '--enable-auto-tool-choice',
+          '--tool-call-parser',
+          'qwen3_coder',
+        ],
+        minMemoryGB: 24,
+      },
+      'nvidia-hopper': {
+        args: [
+          'nvidia/NVIDIA-Nemotron-Labs-3-Elastic-30B-A3B-FP8',
+          '--trust-remote-code',
+          '--max-model-len',
+          '131072',
+          '--max-num-seqs',
+          '8',
+          '--kv-cache-dtype',
+          'fp8',
+          '--async-scheduling',
+          '--reasoning-parser',
+          'nemotron_v3',
+          '--enable-auto-tool-choice',
+          '--tool-call-parser',
+          'qwen3_coder',
+        ],
+        minMemoryGB: 40,
+      },
+      amd: {
+        args: [
+          'nvidia/NVIDIA-Nemotron-Labs-3-Elastic-30B-A3B-FP8',
+          '--trust-remote-code',
+          '--max-model-len',
+          '32768',
+          '--max-num-seqs',
+          '8',
+          '--reasoning-parser',
+          'nemotron_v3',
+          '--enable-auto-tool-choice',
+          '--tool-call-parser',
+          'qwen3_coder',
+        ],
+        minMemoryGB: 40,
       },
     },
   },
