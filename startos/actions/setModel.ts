@@ -112,7 +112,7 @@ export const setModel = sdk.Action.withInput(
     if (config.selection === 'custom') {
       serveArgs = config.value.args.split(/\s+/).filter(Boolean)
     } else {
-      const { tier } = await detectHardware(effects)
+      const { tier, memoryGB } = await detectHardware(effects)
       const model = models.find((m) => m.id === config.selection)
       const cfg = model?.configs[tier]
       if (!cfg) {
@@ -120,7 +120,12 @@ export const setModel = sdk.Action.withInput(
           `No configuration for ${config.selection} on ${tier} hardware`,
         )
       }
-      serveArgs = cfg.args
+      const step = [...cfg.contextByMemory]
+        .reverse()
+        .find((s) => memoryGB >= s.gb)
+      serveArgs = step
+        ? [...cfg.args, '--max-model-len', String(step.ctx)]
+        : cfg.args
     }
     await storeJson.merge(effects, { serveArgs })
   },
