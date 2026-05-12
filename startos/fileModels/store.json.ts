@@ -4,6 +4,13 @@ import { sdk } from '../sdk'
 const shape = z.object({
   apiKey: z.string().optional().catch(undefined),
   serveArgs: z.array(z.string()).optional().catch(undefined),
+  modelSelection: z
+    .object({
+      selection: z.string(),
+      customArgs: z.string().optional(),
+    })
+    .optional()
+    .catch(undefined),
 })
 
 export const storeJson = FileHelper.json(

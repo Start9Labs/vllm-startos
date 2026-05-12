@@ -103,14 +103,38 @@ export const setModel = sdk.Action.withInput(
   inputSpec,
 
   // optionally pre-fill the input form
-  async ({ effects }) => ({}),
+  async ({ effects }) => {
+    const saved = await storeJson
+      .read((s) => s.modelSelection)
+      .const(effects)
+    if (!saved || !(saved.selection in allVariants)) return {}
+    if (saved.selection === 'custom') {
+      return {
+        config: {
+          selection: 'custom' as const,
+          value: { args: saved.customArgs ?? '' },
+        },
+      }
+    }
+    // The SDK's prefill type is a discriminated union by `selection`; the
+    // cast picks one representative variant to satisfy TS, while at runtime
+    // `selection` is just looked up in `allVariants` by key.
+    return {
+      config: {
+        selection: saved.selection as 'qwen36-35b-a3b',
+        value: {},
+      },
+    }
+  },
 
   // the execution function
   async ({ effects, input }) => {
     const config = input.config
     let serveArgs: string[]
+    let modelSelection: { selection: string; customArgs?: string }
     if (config.selection === 'custom') {
       serveArgs = config.value.args.split(/\s+/).filter(Boolean)
+      modelSelection = { selection: 'custom', customArgs: config.value.args }
     } else {
       const { tier, memoryGB } = await detectHardware(effects)
       const model = models.find((m) => m.id === config.selection)
@@ -126,7 +150,8 @@ export const setModel = sdk.Action.withInput(
       serveArgs = step
         ? [...cfg.args, '--max-model-len', String(step.ctx)]
         : cfg.args
+      modelSelection = { selection: config.selection }
     }
-    await storeJson.merge(effects, { serveArgs })
+    await storeJson.merge(effects, { serveArgs, modelSelection })
   },
 )
