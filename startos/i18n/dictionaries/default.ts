@@ -32,6 +32,7 @@ const dict = {
   'Qwen3 30B-A3B': 29,
   'Llama 3.3 70B Instruct': 30,
   'Mistral Small 3.2 24B Instruct': 31,
+  'Nemotron 3 Elastic 30B-A3B': 32,
 
   // actions/deleteModelCache.ts
   'Delete Model Cache': 14,

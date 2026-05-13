@@ -45,6 +45,10 @@ const allVariants = {
     name: i18n('Mistral Small 3.2 24B Instruct'),
     spec: InputSpec.of({}),
   },
+  'nemotron3-elastic-30b-a3b': {
+    name: i18n('Nemotron 3 Elastic 30B-A3B'),
+    spec: InputSpec.of({}),
+  },
   custom: customVariant,
 }
 
@@ -99,16 +103,40 @@ export const setModel = sdk.Action.withInput(
   inputSpec,
 
   // optionally pre-fill the input form
-  async ({ effects }) => ({}),
+  async ({ effects }) => {
+    const saved = await storeJson
+      .read((s) => s.modelSelection)
+      .const(effects)
+    if (!saved || !(saved.selection in allVariants)) return {}
+    if (saved.selection === 'custom') {
+      return {
+        config: {
+          selection: 'custom' as const,
+          value: { args: saved.customArgs ?? '' },
+        },
+      }
+    }
+    // The SDK's prefill type is a discriminated union by `selection`; the
+    // cast picks one representative variant to satisfy TS, while at runtime
+    // `selection` is just looked up in `allVariants` by key.
+    return {
+      config: {
+        selection: saved.selection as 'qwen36-35b-a3b',
+        value: {},
+      },
+    }
+  },
 
   // the execution function
   async ({ effects, input }) => {
     const config = input.config
     let serveArgs: string[]
+    let modelSelection: { selection: string; customArgs?: string }
     if (config.selection === 'custom') {
       serveArgs = config.value.args.split(/\s+/).filter(Boolean)
+      modelSelection = { selection: 'custom', customArgs: config.value.args }
     } else {
-      const { tier } = await detectHardware(effects)
+      const { tier, memoryGB } = await detectHardware(effects)
       const model = models.find((m) => m.id === config.selection)
       const cfg = model?.configs[tier]
       if (!cfg) {
@@ -116,8 +144,14 @@ export const setModel = sdk.Action.withInput(
           `No configuration for ${config.selection} on ${tier} hardware`,
         )
       }
-      serveArgs = cfg.args
+      const step = [...cfg.contextByMemory]
+        .reverse()
+        .find((s) => memoryGB >= s.gb)
+      serveArgs = step
+        ? [...cfg.args, '--max-model-len', String(step.ctx)]
+        : cfg.args
+      modelSelection = { selection: config.selection }
     }
-    await storeJson.merge(effects, { serveArgs })
+    await storeJson.merge(effects, { serveArgs, modelSelection })
   },
 )

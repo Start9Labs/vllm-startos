@@ -1,10 +1,26 @@
 import type { I18nKey } from '../i18n/dictionaries/default'
 import type { HardwareTier } from '../hardware'
 
+export type ContextStep = {
+  /** Total accelerator memory (GiB) at which this context length kicks in. */
+  gb: number
+  /** Value passed to `vllm serve --max-model-len`. */
+  ctx: number
+}
+
 export type ModelConfig = {
+  /** vLLM serve args, NOT including `--max-model-len` (injected per memory). */
   args: string[]
-  /** Minimum total accelerator/system memory required (GiB). Includes weights + KV cache + overhead. */
+  /** Minimum total accelerator/system memory required (GiB) to load the model at all. */
   minMemoryGB: number
+  /**
+   * Sorted ascending by `gb`. setModel picks the largest entry whose
+   * threshold is <= the detected memory and appends
+   * `--max-model-len <ctx>` to `args`. An empty array means "don't set
+   * `--max-model-len`" — vLLM falls back to the model's native max
+   * position embeddings.
+   */
+  contextByMemory: ContextStep[]
 }
 
 export type ModelPreset = {
@@ -23,6 +39,10 @@ export type ModelPreset = {
 // Memory budget = quantized weights size + ~30% for KV cache, activations,
 // CUDA graphs, and Python overhead.
 //
+// Context length scales with available VRAM via `contextByMemory`. Pick
+// step thresholds that leave headroom for KV growth: a tighter cap at
+// minMemoryGB, the model's native max at 2-3× that.
+//
 // Tool-call parsers (per model family):
 //   Qwen3.6                       → qwen3_coder (Qwen3.6's chat template emits
 //                                   <function=name><parameter=key>...</parameter>
@@ -32,6 +52,8 @@ export type ModelPreset = {
 //   Llama 3.3                     → llama3_json + tool_chat_template_llama3.2_json.jinja
 //   Mistral Small 3.2             → mistral (used together with
 //                                   --tokenizer-mode mistral)
+//   Nemotron 3 (Nano / Elastic)   → qwen3_coder for tools, nemotron_v3 for
+//                                   the <think>…</think> reasoning trace.
 //
 // Tool-call chat templates ship inside the vLLM image at
 // /vllm-workspace/examples/.
@@ -53,12 +75,15 @@ export const models: ModelPreset[] = [
           'qwen3_coder',
         ],
         minMemoryGB: 32,
+        contextByMemory: [
+          { gb: 32, ctx: 65536 },
+          { gb: 48, ctx: 131072 },
+          { gb: 80, ctx: 262144 },
+        ],
       },
       'nvidia-hopper': {
         args: [
           'cyankiwi/Qwen3.6-35B-A3B-AWQ-4bit',
-          '--max-model-len',
-          '262144',
           '--reasoning-parser',
           'qwen3',
           '--enable-auto-tool-choice',
@@ -66,12 +91,13 @@ export const models: ModelPreset[] = [
           'qwen3_coder',
         ],
         minMemoryGB: 30,
+        contextByMemory: [
+          { gb: 30, ctx: 262144 },
+        ],
       },
       'nvidia-older': {
         args: [
           'cyankiwi/Qwen3.6-35B-A3B-AWQ-4bit',
-          '--max-model-len',
-          '32768',
           '--reasoning-parser',
           'qwen3',
           '--enable-auto-tool-choice',
@@ -79,12 +105,16 @@ export const models: ModelPreset[] = [
           'qwen3_coder',
         ],
         minMemoryGB: 30,
+        contextByMemory: [
+          { gb: 30, ctx: 32768 },
+          { gb: 48, ctx: 65536 },
+          { gb: 80, ctx: 131072 },
+          { gb: 120, ctx: 262144 },
+        ],
       },
       amd: {
         args: [
           'Qwen/Qwen3.6-35B-A3B-FP8',
-          '--max-model-len',
-          '32768',
           '--reasoning-parser',
           'qwen3',
           '--enable-auto-tool-choice',
@@ -92,6 +122,12 @@ export const models: ModelPreset[] = [
           'qwen3_coder',
         ],
         minMemoryGB: 45,
+        contextByMemory: [
+          { gb: 45, ctx: 32768 },
+          { gb: 80, ctx: 65536 },
+          { gb: 120, ctx: 131072 },
+          { gb: 180, ctx: 262144 },
+        ],
       },
     },
   },
@@ -106,8 +142,6 @@ export const models: ModelPreset[] = [
           '--quantization',
           'modelopt',
           '--language-model-only',
-          '--max-model-len',
-          '262144',
           '--max-num-seqs',
           '2',
           '--kv-cache-dtype',
@@ -123,12 +157,13 @@ export const models: ModelPreset[] = [
           'qwen3_coder',
         ],
         minMemoryGB: 28,
+        contextByMemory: [
+          { gb: 28, ctx: 262144 },
+        ],
       },
       'nvidia-hopper': {
         args: [
           'cyankiwi/Qwen3.6-27B-AWQ-INT4',
-          '--max-model-len',
-          '262144',
           '--reasoning-parser',
           'qwen3',
           '--enable-auto-tool-choice',
@@ -136,12 +171,13 @@ export const models: ModelPreset[] = [
           'qwen3_coder',
         ],
         minMemoryGB: 25,
+        contextByMemory: [
+          { gb: 25, ctx: 262144 },
+        ],
       },
       'nvidia-older': {
         args: [
           'cyankiwi/Qwen3.6-27B-AWQ-INT4',
-          '--max-model-len',
-          '32768',
           '--reasoning-parser',
           'qwen3',
           '--enable-auto-tool-choice',
@@ -149,12 +185,16 @@ export const models: ModelPreset[] = [
           'qwen3_coder',
         ],
         minMemoryGB: 25,
+        contextByMemory: [
+          { gb: 25, ctx: 32768 },
+          { gb: 40, ctx: 65536 },
+          { gb: 64, ctx: 131072 },
+          { gb: 96, ctx: 262144 },
+        ],
       },
       amd: {
         args: [
           'Qwen/Qwen3.6-27B-FP8',
-          '--max-model-len',
-          '32768',
           '--reasoning-parser',
           'qwen3',
           '--enable-auto-tool-choice',
@@ -162,6 +202,12 @@ export const models: ModelPreset[] = [
           'qwen3_coder',
         ],
         minMemoryGB: 35,
+        contextByMemory: [
+          { gb: 35, ctx: 32768 },
+          { gb: 64, ctx: 65536 },
+          { gb: 96, ctx: 131072 },
+          { gb: 144, ctx: 262144 },
+        ],
       },
     },
   },
@@ -173,8 +219,6 @@ export const models: ModelPreset[] = [
         args: [
           'RedHatAI/Qwen3-Next-80B-A3B-Instruct-NVFP4',
           '--trust-remote-code',
-          '--max-model-len',
-          '32768',
           '--gpu-memory-utilization',
           '0.9',
           '--enable-auto-tool-choice',
@@ -182,39 +226,55 @@ export const models: ModelPreset[] = [
           'hermes',
         ],
         minMemoryGB: 56,
+        contextByMemory: [
+          { gb: 56, ctx: 32768 },
+          { gb: 80, ctx: 65536 },
+          { gb: 144, ctx: 131072 },
+          { gb: 192, ctx: 262144 },
+        ],
       },
       'nvidia-hopper': {
         args: [
           'cyankiwi/Qwen3-Next-80B-A3B-Instruct-AWQ-4bit',
-          '--max-model-len',
-          '32768',
           '--enable-auto-tool-choice',
           '--tool-call-parser',
           'hermes',
         ],
         minMemoryGB: 55,
+        contextByMemory: [
+          { gb: 55, ctx: 32768 },
+          { gb: 80, ctx: 65536 },
+          { gb: 144, ctx: 131072 },
+          { gb: 192, ctx: 262144 },
+        ],
       },
       'nvidia-older': {
         args: [
           'cyankiwi/Qwen3-Next-80B-A3B-Instruct-AWQ-4bit',
-          '--max-model-len',
-          '32768',
           '--enable-auto-tool-choice',
           '--tool-call-parser',
           'hermes',
         ],
         minMemoryGB: 55,
+        contextByMemory: [
+          { gb: 55, ctx: 32768 },
+          { gb: 96, ctx: 65536 },
+          { gb: 160, ctx: 131072 },
+        ],
       },
       amd: {
         args: [
           'RedHatAI/Qwen3-Next-80B-A3B-Instruct-FP8-dynamic',
-          '--max-model-len',
-          '32768',
           '--enable-auto-tool-choice',
           '--tool-call-parser',
           'hermes',
         ],
         minMemoryGB: 95,
+        contextByMemory: [
+          { gb: 95, ctx: 32768 },
+          { gb: 160, ctx: 65536 },
+          { gb: 256, ctx: 131072 },
+        ],
       },
     },
   },
@@ -225,8 +285,6 @@ export const models: ModelPreset[] = [
       'nvidia-blackwell': {
         args: [
           'RedHatAI/Qwen3-30B-A3B-NVFP4',
-          '--max-model-len',
-          '32768',
           '--gpu-memory-utilization',
           '0.9',
           '--reasoning-parser',
@@ -236,34 +294,46 @@ export const models: ModelPreset[] = [
           'hermes',
         ],
         minMemoryGB: 25,
+        contextByMemory: [
+          { gb: 25, ctx: 32768 },
+          { gb: 40, ctx: 65536 },
+          { gb: 64, ctx: 131072 },
+          { gb: 96, ctx: 262144 },
+        ],
       },
       'nvidia-hopper': {
         args: [
           'cyankiwi/Qwen3-30B-A3B-Instruct-2507-AWQ-4bit',
-          '--max-model-len',
-          '32768',
           '--enable-auto-tool-choice',
           '--tool-call-parser',
           'hermes',
         ],
         minMemoryGB: 22,
+        contextByMemory: [
+          { gb: 22, ctx: 32768 },
+          { gb: 40, ctx: 65536 },
+          { gb: 64, ctx: 131072 },
+          { gb: 96, ctx: 262144 },
+        ],
       },
       'nvidia-older': {
         args: [
           'cyankiwi/Qwen3-30B-A3B-Instruct-2507-AWQ-4bit',
-          '--max-model-len',
-          '32768',
           '--enable-auto-tool-choice',
           '--tool-call-parser',
           'hermes',
         ],
         minMemoryGB: 22,
+        contextByMemory: [
+          { gb: 22, ctx: 32768 },
+          { gb: 40, ctx: 65536 },
+          { gb: 64, ctx: 131072 },
+          { gb: 96, ctx: 262144 },
+        ],
       },
       amd: {
         args: [
           'RedHatAI/Qwen3-30B-A3B-FP8-dynamic',
-          '--max-model-len',
-          '32768',
           '--reasoning-parser',
           'qwen3',
           '--enable-auto-tool-choice',
@@ -271,6 +341,12 @@ export const models: ModelPreset[] = [
           'hermes',
         ],
         minMemoryGB: 38,
+        contextByMemory: [
+          { gb: 38, ctx: 32768 },
+          { gb: 64, ctx: 65536 },
+          { gb: 96, ctx: 131072 },
+          { gb: 144, ctx: 262144 },
+        ],
       },
     },
   },
@@ -281,8 +357,6 @@ export const models: ModelPreset[] = [
       'nvidia-blackwell': {
         args: [
           'RedHatAI/Llama-3.3-70B-Instruct-NVFP4',
-          '--max-model-len',
-          '131072',
           '--gpu-memory-utilization',
           '0.9',
           '--enable-auto-tool-choice',
@@ -292,14 +366,17 @@ export const models: ModelPreset[] = [
           '/vllm-workspace/examples/tool_chat_template_llama3.2_json.jinja',
         ],
         minMemoryGB: 60,
+        contextByMemory: [
+          { gb: 60, ctx: 32768 },
+          { gb: 80, ctx: 65536 },
+          { gb: 120, ctx: 131072 },
+        ],
       },
       'nvidia-hopper': {
         args: [
           'ibnzterrell/Meta-Llama-3.3-70B-Instruct-AWQ-INT4',
           '--quantization',
           'awq',
-          '--max-model-len',
-          '32768',
           '--enable-auto-tool-choice',
           '--tool-call-parser',
           'llama3_json',
@@ -307,14 +384,17 @@ export const models: ModelPreset[] = [
           '/vllm-workspace/examples/tool_chat_template_llama3.2_json.jinja',
         ],
         minMemoryGB: 44,
+        contextByMemory: [
+          { gb: 44, ctx: 32768 },
+          { gb: 80, ctx: 65536 },
+          { gb: 144, ctx: 131072 },
+        ],
       },
       'nvidia-older': {
         args: [
           'ibnzterrell/Meta-Llama-3.3-70B-Instruct-AWQ-INT4',
           '--quantization',
           'awq',
-          '--max-model-len',
-          '8192',
           '--enable-auto-tool-choice',
           '--tool-call-parser',
           'llama3_json',
@@ -322,12 +402,17 @@ export const models: ModelPreset[] = [
           '/vllm-workspace/examples/tool_chat_template_llama3.2_json.jinja',
         ],
         minMemoryGB: 44,
+        contextByMemory: [
+          { gb: 44, ctx: 8192 },
+          { gb: 64, ctx: 16384 },
+          { gb: 96, ctx: 32768 },
+          { gb: 144, ctx: 65536 },
+          { gb: 192, ctx: 131072 },
+        ],
       },
       amd: {
         args: [
           'RedHatAI/Llama-3.3-70B-Instruct-FP8-dynamic',
-          '--max-model-len',
-          '32768',
           '--enable-auto-tool-choice',
           '--tool-call-parser',
           'llama3_json',
@@ -335,6 +420,11 @@ export const models: ModelPreset[] = [
           '/vllm-workspace/examples/tool_chat_template_llama3.2_json.jinja',
         ],
         minMemoryGB: 85,
+        contextByMemory: [
+          { gb: 85, ctx: 32768 },
+          { gb: 144, ctx: 65536 },
+          { gb: 192, ctx: 131072 },
+        ],
       },
     },
   },
@@ -352,6 +442,11 @@ export const models: ModelPreset[] = [
           'mistral',
         ],
         minMemoryGB: 22,
+        contextByMemory: [
+          { gb: 22, ctx: 32768 },
+          { gb: 40, ctx: 65536 },
+          { gb: 64, ctx: 131072 },
+        ],
       },
       'nvidia-hopper': {
         args: [
@@ -367,6 +462,11 @@ export const models: ModelPreset[] = [
           'mistral',
         ],
         minMemoryGB: 18,
+        contextByMemory: [
+          { gb: 18, ctx: 32768 },
+          { gb: 32, ctx: 65536 },
+          { gb: 64, ctx: 131072 },
+        ],
       },
       'nvidia-older': {
         args: [
@@ -382,6 +482,11 @@ export const models: ModelPreset[] = [
           'mistral',
         ],
         minMemoryGB: 18,
+        contextByMemory: [
+          { gb: 18, ctx: 32768 },
+          { gb: 32, ctx: 65536 },
+          { gb: 64, ctx: 131072 },
+        ],
       },
       amd: {
         args: [
@@ -393,6 +498,84 @@ export const models: ModelPreset[] = [
           'mistral',
         ],
         minMemoryGB: 30,
+        contextByMemory: [
+          { gb: 30, ctx: 32768 },
+          { gb: 64, ctx: 65536 },
+          { gb: 96, ctx: 131072 },
+        ],
+      },
+    },
+  },
+  {
+    // NVIDIA only ships NVFP4 + FP8 elastic checkpoints (no AWQ, no BF16),
+    // so the older-NVIDIA tier is intentionally omitted — pre-Hopper cards
+    // can't run FP8 efficiently. Mamba2-Transformer hybrid: KV per token is
+    // small (most layers are Mamba state), so context scales aggressively.
+    id: 'nemotron3-elastic-30b-a3b',
+    displayName: 'Nemotron 3 Elastic 30B-A3B',
+    configs: {
+      'nvidia-blackwell': {
+        args: [
+          'nvidia/NVIDIA-Nemotron-Labs-3-Elastic-30B-A3B-NVFP4',
+          '--trust-remote-code',
+          '--max-num-seqs',
+          '8',
+          '--gpu-memory-utilization',
+          '0.9',
+          '--async-scheduling',
+          '--reasoning-parser',
+          'nemotron_v3',
+          '--enable-auto-tool-choice',
+          '--tool-call-parser',
+          'qwen3_coder',
+        ],
+        minMemoryGB: 24,
+        contextByMemory: [
+          { gb: 24, ctx: 65536 },
+          { gb: 40, ctx: 131072 },
+          { gb: 80, ctx: 262144 },
+        ],
+      },
+      'nvidia-hopper': {
+        args: [
+          'nvidia/NVIDIA-Nemotron-Labs-3-Elastic-30B-A3B-FP8',
+          '--trust-remote-code',
+          '--max-num-seqs',
+          '8',
+          '--kv-cache-dtype',
+          'fp8',
+          '--async-scheduling',
+          '--reasoning-parser',
+          'nemotron_v3',
+          '--enable-auto-tool-choice',
+          '--tool-call-parser',
+          'qwen3_coder',
+        ],
+        minMemoryGB: 40,
+        contextByMemory: [
+          { gb: 40, ctx: 65536 },
+          { gb: 60, ctx: 131072 },
+          { gb: 96, ctx: 262144 },
+        ],
+      },
+      amd: {
+        args: [
+          'nvidia/NVIDIA-Nemotron-Labs-3-Elastic-30B-A3B-FP8',
+          '--trust-remote-code',
+          '--max-num-seqs',
+          '8',
+          '--reasoning-parser',
+          'nemotron_v3',
+          '--enable-auto-tool-choice',
+          '--tool-call-parser',
+          'qwen3_coder',
+        ],
+        minMemoryGB: 40,
+        contextByMemory: [
+          { gb: 40, ctx: 32768 },
+          { gb: 80, ctx: 65536 },
+          { gb: 144, ctx: 131072 },
+        ],
       },
     },
   },
