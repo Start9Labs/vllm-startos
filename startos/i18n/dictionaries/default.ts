@@ -23,8 +23,7 @@ const dict = {
   'Changing the model will restart the service and may require downloading a new model.': 13,
   Configuration: 20,
   'vLLM serve arguments': 21,
-  "The full argument string passed after `vllm serve`. Starts with the model id, then any flags. Split on whitespace, so quoted JSON values won't survive — use a preset for those.":
-    22,
+  "The full argument string passed after `vllm serve`. Starts with the model id, then any flags. Split on whitespace, so quoted JSON values won't survive — use a preset for those.": 22,
   Custom: 23,
   'Qwen3.6 35B-A3B': 24,
   'Qwen3.6 27B': 26,
@@ -33,14 +32,14 @@ const dict = {
   'Llama 3.3 70B Instruct': 30,
   'Mistral Small 3.2 24B Instruct': 31,
   'Nemotron 3 Elastic 30B-A3B': 32,
+  'Gemma 4 31B Instruct': 33,
+  'Gemma 4 26B-A4B Instruct': 34,
 
   // actions/deleteModelCache.ts
   'Delete Model Cache': 14,
   'Remove a downloaded model from the cache to free up disk space': 15,
-  'HuggingFace model ID to delete from cache (e.g. meta-llama/Llama-3.1-8B-Instruct)':
-    16,
-  'This will permanently delete the cached model files. The model will need to be re-downloaded if selected again.':
-    17,
+  'HuggingFace model ID to delete from cache (e.g. meta-llama/Llama-3.1-8B-Instruct)': 16,
+  'This will permanently delete the cached model files. The model will need to be re-downloaded if selected again.': 17,
 
   // init/initializeService.ts
   'Retrieve your API key so you can connect to vLLM': 18,

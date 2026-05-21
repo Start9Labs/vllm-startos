@@ -49,6 +49,14 @@ const allVariants = {
     name: i18n('Nemotron 3 Elastic 30B-A3B'),
     spec: InputSpec.of({}),
   },
+  'gemma4-31b': {
+    name: i18n('Gemma 4 31B Instruct'),
+    spec: InputSpec.of({}),
+  },
+  'gemma4-26b-a4b': {
+    name: i18n('Gemma 4 26B-A4B Instruct'),
+    spec: InputSpec.of({}),
+  },
   custom: customVariant,
 }
 
@@ -104,9 +112,7 @@ export const setModel = sdk.Action.withInput(
 
   // optionally pre-fill the input form
   async ({ effects }) => {
-    const saved = await storeJson
-      .read((s) => s.modelSelection)
-      .const(effects)
+    const saved = await storeJson.read((s) => s.modelSelection).const(effects)
     if (!saved || !(saved.selection in allVariants)) return {}
     if (saved.selection === 'custom') {
       return {

@@ -32,6 +32,8 @@ export default {
     30: 'Llama 3.3 70B Instruct',
     31: 'Mistral Small 3.2 24B Instruct',
     32: 'Nemotron 3 Elastic 30B-A3B',
+    33: 'Gemma 4 31B Instruct',
+    34: 'Gemma 4 26B-A4B Instruct',
   },
   de_DE: {
     0: 'Starte vLLM!',
@@ -64,6 +66,8 @@ export default {
     30: 'Llama 3.3 70B Instruct',
     31: 'Mistral Small 3.2 24B Instruct',
     32: 'Nemotron 3 Elastic 30B-A3B',
+    33: 'Gemma 4 31B Instruct',
+    34: 'Gemma 4 26B-A4B Instruct',
   },
   pl_PL: {
     0: 'Uruchamianie vLLM!',
@@ -96,6 +100,8 @@ export default {
     30: 'Llama 3.3 70B Instruct',
     31: 'Mistral Small 3.2 24B Instruct',
     32: 'Nemotron 3 Elastic 30B-A3B',
+    33: 'Gemma 4 31B Instruct',
+    34: 'Gemma 4 26B-A4B Instruct',
   },
   fr_FR: {
     0: 'Démarrage de vLLM !',
@@ -128,5 +134,7 @@ export default {
     30: 'Llama 3.3 70B Instruct',
     31: 'Mistral Small 3.2 24B Instruct',
     32: 'Nemotron 3 Elastic 30B-A3B',
+    33: 'Gemma 4 31B Instruct',
+    34: 'Gemma 4 26B-A4B Instruct',
   },
 } satisfies Record<string, LangDict>

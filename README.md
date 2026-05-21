@@ -146,7 +146,7 @@ Each preset specifies per-tier argv and a minimum memory budget (weights + ~30% 
 - Older NVIDIA -- AWQ INT4
 - AMD -- FP8 (only quant other than GGUF that vllm-rocm supports)
 
-Bundled presets: Qwen3.6 35B-A3B, Qwen3.6 27B, Qwen3-Next 80B-A3B, Qwen3 30B-A3B, Llama 3.3 70B Instruct, Mistral Small 3.2 24B Instruct.
+Bundled presets: Qwen3.6 35B-A3B, Qwen3.6 27B, Qwen3-Next 80B-A3B, Qwen3 30B-A3B, Llama 3.3 70B Instruct, Mistral Small 3.2 24B Instruct, Nemotron 3 Elastic 30B-A3B, Gemma 4 31B Instruct, Gemma 4 26B-A4B Instruct.
 
 The **Custom** option splits its input string on whitespace, so quoted JSON values won't survive -- use a preset for those.
 
