@@ -1,6 +1,6 @@
-import { cpus, totalmem } from 'node:os'
 import { setupManifest } from '@start9labs/start-sdk'
-import { short, long, alertInstall } from './i18n'
+import { cpus, totalmem } from 'node:os'
+import { long, short } from './i18n'
 
 const variant = process.env.VARIANT || 'cpu'
 
@@ -51,12 +51,10 @@ const imageConfigs = {
   },
 } as const
 
-const license = 'Apache-2.0'
-
 export const manifest = setupManifest({
   id: 'vllm',
   title: 'vLLM',
-  license,
+  license: 'Apache-2.0',
   packageRepo: 'https://github.com/Start9Labs/vllm-startos',
   upstreamRepo: 'https://github.com/vllm-project/vllm',
   marketingUrl: 'https://docs.vllm.ai/',
@@ -69,14 +67,6 @@ export const manifest = setupManifest({
       imageConfigs[variant as keyof typeof imageConfigs] ?? imageConfigs.cpu,
     ),
   },
-  alerts: {
-    install: alertInstall,
-    update: null,
-    uninstall: null,
-    restore: null,
-    start: null,
-    stop: null,
-  },
   hardwareAcceleration: variant !== 'cpu',
   dependencies: {},
   hardwareRequirements: {
@@ -84,7 +74,7 @@ export const manifest = setupManifest({
       variant === 'rocm'
         ? [
             {
-              class: 'display' as const,
+              class: 'display',
               product: null,
               vendor: null,
               driver: 'amdgpu',

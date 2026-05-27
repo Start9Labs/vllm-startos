@@ -20,16 +20,3 @@ export const long = {
   fr_FR:
     "vLLM est une bibliothèque rapide et facile à utiliser pour l'inférence et le service LLM. Elle offre un débit de pointe grâce à PagedAttention, un serveur API compatible OpenAI et la prise en charge d'une grande variété de modèles HuggingFace. Connectez n'importe quel client compatible OpenAI à votre instance vLLM auto-hébergée.",
 }
-
-export const alertInstall = {
-  en_US:
-    'After installation, run the "Set Model" action to choose a HuggingFace model to serve. Run "Get API Credentials" to retrieve your API key. The first startup after selecting a model may take a long time as it downloads the model weights.',
-  es_ES:
-    'Después de la instalación, ejecute la acción "Establecer modelo" para elegir un modelo de HuggingFace. Ejecute "Obtener credenciales de API" para recuperar su clave API. El primer inicio después de seleccionar un modelo puede tardar mucho tiempo ya que descarga los pesos del modelo.',
-  de_DE:
-    'Führen Sie nach der Installation die Aktion "Modell festlegen" aus, um ein HuggingFace-Modell auszuwählen. Führen Sie "API-Zugangsdaten abrufen" aus, um Ihren API-Schlüssel zu erhalten. Der erste Start nach der Modellauswahl kann lange dauern, da die Modellgewichte heruntergeladen werden.',
-  pl_PL:
-    'Po instalacji uruchom akcję "Ustaw model", aby wybrać model HuggingFace. Uruchom "Pobierz dane dostępowe API", aby uzyskać klucz API. Pierwsze uruchomienie po wybraniu modelu może trwać długo, ponieważ pobiera wagi modelu.',
-  fr_FR:
-    "Après l'installation, exécutez l'action « Définir le modèle » pour choisir un modèle HuggingFace. Exécutez « Obtenir les identifiants de l'API » pour récupérer votre clé API. Le premier démarrage après la sélection d'un modèle peut prendre du temps car il télécharge les poids du modèle.",
-}

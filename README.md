@@ -59,11 +59,11 @@ The `nvidia` variant declares `nvidiaContainer: true`, so it requires the NVIDIA
 Layout under `/data` (the `main` volume):
 
 - `models/` -- HuggingFace model cache (`HF_HUB_CACHE=/data/models`, also passed as `--download-dir`)
-- `store.json` -- StartOS-managed package state (API key, current `vllm serve` argv)
+- `store.json` -- StartOS-managed package state (current `vllm serve` argv + remembered model selection)
 
 The `public` volume contains:
 
-- `credentials.json` -- `{ "apiKey": "<22-char string>" }`. Mirrors `store.apiKey`. Maintained by a reactive init script so it is always up-to-date with the private store, including after fresh install, version upgrade, or restore-from-backup.
+- `credentials.json` -- `{ "apiKey": "<22-char string>" }`. The canonical home for the API key: it is generated here at install, read here by the daemon (`--api-key`) and the **Get API Key** action, and mounted read-only by dependents (see [Dependent Services](#dependent-services)).
 
 ---
 
@@ -73,16 +73,16 @@ The `public` volume contains:
 |------|----------|---------|
 | Install | `pip install vllm` or run upstream container | Install from marketplace or sideload `.s9pk` |
 | Configure model | CLI flags to `vllm serve` | "Set Model" action (preset or custom argv) |
-| Get API key | User-provided `--api-key` | "Get API Credentials" action (key generated at install) |
+| Get API key | User-provided `--api-key` | "Get API Key" action (key generated at install) |
 | Start server | `vllm serve <model> --host 0.0.0.0 --port 8000 ...` | Automatic; argv driven by store |
 
 On install:
 
-1. A 22-character random API key is generated and written to `store.json`.
-2. Two critical tasks are queued: **Get API Credentials** and **Set Model**.
+1. A 22-character random API key is generated and written to `credentials.json` on the `public` volume.
+2. Two critical tasks are queued: **Get API Key** and **Set Model**.
 3. Until **Set Model** runs, the daemon idles (`sleep infinity`) and the health check reports "No model selected." Selecting a model restarts the service with the chosen argv.
 
-The first start after a model selection downloads the weights into `/data/models`. For large quantized models from a cold cache, this plus JIT compilation can take 30+ minutes; the daemon `gracePeriod` is set to 60 minutes accordingly.
+The first start after a model selection downloads the weights into `/data/models`. For large quantized models from a cold cache, this plus JIT compilation can take 30+ minutes; during that window the health check reports a **loading** state with a message explaining the wait, rather than a failure.
 
 ---
 
@@ -94,8 +94,10 @@ vLLM is configured through StartOS actions, not environment variables. The compl
 
 | Field | Type | Set by |
 |-------|------|--------|
-| `apiKey` | string | install (auto-generated) |
 | `serveArgs` | string[] | `Set Model` action |
+| `modelSelection` | object | `Set Model` action (remembers the chosen preset to pre-fill the form) |
+
+The API key is **not** in `store.json`; it lives in `credentials.json` on the `public` volume (see [Volume and Data Layout](#volume-and-data-layout)).
 
 **Fixed by StartOS (not configurable):**
 
@@ -103,7 +105,7 @@ vLLM is configured through StartOS actions, not environment variables. The compl
 - `--port` -- always `8000`
 - `--download-dir` -- always `/data/models`
 - `HF_HUB_CACHE` -- always `/data/models`
-- `--api-key` -- read from `store.apiKey`
+- `--api-key` -- read from `credentials.json` on the `public` volume
 
 Anything else (tensor parallelism, KV cache dtype, quantization, chat template, max-model-len, tool-call parser, etc.) is part of `serveArgs` and is set either by a curated preset or by the **Custom** option in the Set Model action.
 
@@ -115,7 +117,7 @@ Anything else (tensor parallelism, KV cache dtype, quantization, chat template, 
 |-----------|------|----------|------|---------|
 | vLLM API Server | 8000 | HTTP | API | OpenAI-compatible inference API |
 
-Set the base URL in any OpenAI-compatible client to your service address with `/v1` appended, and use the API key from **Get API Credentials**.
+Set the base URL in any OpenAI-compatible client to your service address with `/v1` appended, and use the API key from **Get API Key**.
 
 ---
 
@@ -123,7 +125,7 @@ Set the base URL in any OpenAI-compatible client to your service address with `/
 
 | Action | Inputs | Effect |
 |--------|--------|--------|
-| **Get API Credentials** | none | Returns the auto-generated API key (masked, copyable). |
+| **Get API Key** | none | Returns the auto-generated API key (masked, copyable). |
 | **Set Model** | preset choice _or_ custom `vllm serve` argv | Detects host hardware tier and memory, filters the preset list to compatible options, writes `serveArgs` to the store, and restarts the service. |
 | **Delete Model Cache** | HuggingFace model id (e.g. `meta-llama/Llama-3.1-8B-Instruct`) | Removes `models/models--<org>--<name>` from the cache to free disk. |
 
@@ -174,15 +176,13 @@ sdk.Mounts.of().mountDependency<typeof VllmManifest>({
 
 Then read `/vllm-public/credentials.json` and use `apiKey` to authenticate against the vLLM API.
 
-The `public` volume is intentionally separate from `main`: `main` holds private state (model weights, the unhashed key in `store.json`), while `public` exposes only the bits vLLM is OK with dependents reading.
+The `public` volume is intentionally separate from `main`: `main` holds the model weights and StartOS-managed package state (`store.json`), while `public` holds only `credentials.json` — the API key, which vLLM is OK with dependents reading.
 
 ---
 
 ## Backups and Restore
 
-**Included in backup:** the entire `main` volume -- model cache and `store.json` (API key + serve args).
-
-**Not included:** the `public` volume. It's a derived projection of `store.apiKey`; the reactive init script rewrites `credentials.json` on first start after a restore, so dependents see the (restored) key without re-running any action.
+**Included in backup:** the `main` volume (model cache + `store.json` serve args / model selection) **and** the `public` volume (`credentials.json`), so the API key and selected model are both preserved.
 
 **Note:** model weight files are large (a single 7B AWQ model is ~4 GB; a 70B model is 35--80 GB depending on quant). Backups will be correspondingly large unless `Delete Model Cache` is run first.
 
@@ -192,16 +192,19 @@ On restore, the service comes back with the same API key and the same selected m
 
 ## Health Checks
 
-| Check | Method | Grace period |
-|-------|--------|--------------|
+| Check | Method | Behavior while starting |
+|-------|--------|-------------------------|
 | `ldconfig` (oneshot) | refreshes the linker cache so Triton can find the host-injected `libcuda.so.1` (needed on some aarch64 NVIDIA images) | -- |
-| vLLM API | port 8000 listening | 60 minutes (covers cold-cache model download + JIT compile) |
+| vLLM API | port 8000 listening | reports **loading** for the first 35 minutes, then **failure** |
+
+Once a model is selected, the API health check reports `loading` (not failure) while the weights download/compile, so a slow cold start doesn't look like a crash. If the port is still not listening **35 minutes** after the daemon starts, the check flips to a hard `failure` that tells the user to check the logs — a genuine hang or misconfiguration won't stay "loading" forever.
 
 Messages:
 
 - Success: "The vLLM API is ready"
-- Error (no model selected): "No model selected. Run the \"Set Model\" action."
-- Error (model selected, not yet listening): "The vLLM API is not ready"
+- No model selected: "No model selected. Run the \"Set Model\" action."
+- Loading (model selected, not yet listening): explains that a first-time download + load can take 30+ minutes and an already-cached load 15+ minutes, depending on hardware resources and bandwidth.
+- Failure (after 35 minutes): "The vLLM API did not come up within 35 minutes. Check the service logs for errors."
 
 ---
 
@@ -265,17 +268,18 @@ fixed_serve_flags:
   - --host 0.0.0.0
   - --port 8000
   - --download-dir /data/models
-  - --api-key <store.apiKey>
+  - --api-key <credentials.json apiKey>
 actions:
   - get-api-credentials
   - set-model
   - delete-model-cache
 store_file: /data/store.json
 store_shape:
-  apiKey: string
   serveArgs: string[]
+  modelSelection: object
 public_files:
   credentials.json:
-    apiKey: string
-health_check_grace_period_ms: 3600000
+    apiKey: string          # canonical home for the API key
+health_check:
+  api: loading until port 8000 is up (first start can take 30+ min)
 ```

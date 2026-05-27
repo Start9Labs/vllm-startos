@@ -7,14 +7,18 @@ const dict = {
   'The vLLM API is ready': 2,
   'The vLLM API is not ready': 3,
   'No model selected. Run the "Set Model" action.': 4,
+  'The vLLM API is starting. A first-time model download plus load can take 30+ minutes; loading an already-cached model can take 15+ minutes. Exact time depends on your hardware resources and network bandwidth.': 35,
+  'The vLLM API did not come up within 35 minutes. Check the service logs for errors.': 40,
 
   // interfaces.ts
   'vLLM API Server': 5,
   'OpenAI-compatible API for LLM inference': 6,
 
   // actions/getApiCredentials.ts
-  'Get API Credentials': 7,
+  'Get API Key': 7,
   'Retrieve your API key for connecting to the vLLM API': 8,
+  'API Key': 36,
+  'Use this key to connect any OpenAI-compatible client to your vLLM instance. Set the base URL to your vLLM service address with /v1 appended.': 37,
 
   // actions/setModel.ts
   'Set Model': 9,
@@ -40,6 +44,8 @@ const dict = {
   'Remove a downloaded model from the cache to free up disk space': 15,
   'HuggingFace model ID to delete from cache (e.g. meta-llama/Llama-3.1-8B-Instruct)': 16,
   'This will permanently delete the cached model files. The model will need to be re-downloaded if selected again.': 17,
+  'Cache Deleted': 38,
+  'Model cache for "${model}" has been deleted.': 39,
 
   // init/initializeService.ts
   'Retrieve your API key so you can connect to vLLM': 18,
