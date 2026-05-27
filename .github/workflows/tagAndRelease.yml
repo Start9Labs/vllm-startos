@@ -1,19 +1,29 @@
 name: Tag and Release
 
 on:
-  # Disabled pending variant decision (nvidia + cpu vs. all three).
-  # Re-enable by restoring the master push trigger below.
-  workflow_dispatch:
-  # push:
-  #   branches: ['master']
-  #   paths-ignore: ['*.md']
+  push:
+    branches: ['master']
+    paths-ignore: ['*.md']
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
+  guard:
+    runs-on: ubuntu-latest
+    outputs:
+      id: ${{ steps.read.outputs.id }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: read
+        run: |
+          id="$(awk -F"'" '/id:/ {print $2; exit}' startos/manifest/index.ts)"
+          echo "id=$id" >> "$GITHUB_OUTPUT"
+
   tag:
+    needs: guard
+    if: needs.guard.outputs.id != 'hello-world'
     uses: start9labs/shared-workflows/.github/workflows/tagAndRelease.yml@master
     with:
       REFERENCE_REGISTRY: ${{ vars.REFERENCE_REGISTRY }}
