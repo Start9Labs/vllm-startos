@@ -69,18 +69,31 @@ export const manifest = setupManifest({
   },
   hardwareAcceleration: variant !== 'cpu',
   dependencies: {},
+  // Each variant needs a distinct hardware requirement, or variants sharing one
+  // (e.g. two with an empty requirement) collide on publish as a registry
+  // metadata mismatch. cpu is the sole no-requirement fallback.
   hardwareRequirements: {
     device:
-      variant === 'rocm'
+      variant === 'nvidia'
         ? [
             {
               class: 'display',
               product: null,
               vendor: null,
-              driver: 'amdgpu',
-              description: 'An AMD GPU',
+              driver: 'nvidia',
+              description: 'An NVIDIA GPU',
             },
           ]
-        : [],
+        : variant === 'rocm'
+          ? [
+              {
+                class: 'display',
+                product: null,
+                vendor: null,
+                driver: 'amdgpu',
+                description: 'An AMD GPU',
+              },
+            ]
+          : [],
   },
 })
