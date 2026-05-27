@@ -14,17 +14,12 @@ See [Environment Setup](https://docs.start9.com/packaging/environment-setup.html
 
 ## Building
 
-vLLM ships three variants — `nvidia`, `rocm`, and `cpu` — each built as its own `.s9pk`:
-
 ```bash
-npm ci         # install dependencies
-make nvidia    # NVIDIA variant, both arches (prebuilt upstream image, fast)
-make rocm      # AMD ROCm variant, x86 (source build, slow)
-make arches    # CPU variant, all arches (source build, slow)
-make           # all of the above
+npm ci    # install dependencies
+make      # build the universal .s9pk
 ```
 
-The `nvidia` variant pulls the prebuilt upstream container; `rocm` and `cpu` compile vLLM from the bundled `vllm/` submodule and need significant RAM and disk. For a complete list of build options, see [Makefile](https://docs.start9.com/packaging/makefile.html).
+For a complete list of build options, see [Makefile](https://docs.start9.com/packaging/makefile.html).
 
 ## Updating the upstream version
 

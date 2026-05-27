@@ -7,46 +7,50 @@ const variant = process.env.VARIANT || 'cpu'
 type Mutable<T> = { -readonly [K in keyof T]: Mutable<T[K]> }
 const mutable = <T>(value: T): Mutable<T> => value as Mutable<T>
 
-const dockerfiles: Record<string, string> = {
-  rocm: './vllm/docker/Dockerfile.rocm',
-  cpu: './vllm/docker/Dockerfile.cpu',
-}
+// Pinned upstream vLLM nightly commit. nvidia and rocm both run vLLM's official
+// prebuilt images at this commit, so they stay in lockstep — bump it on a vllm
+// update (and bump the submodule + versions to match). See UPDATING.md.
+const NIGHTLY_SHA = '4f940896a32c9e2a0eba7f50d521bf5f6b4de458'
 
-// Build parallelism for source builds (rocm, cpu).
-// Each nvcc thread can use ~2-3 GB of RAM during CUDA kernel compilation.
-// Total parallelism is maxJobs * nvccThreads, so budget them together.
-const totalGb = totalmem() / (1024 * 1024 * 1024)
-const numCpus = cpus().length
-const totalSlots = Math.max(1, Math.min(numCpus, Math.floor(totalGb / 3)))
-const nvccThreads = Math.min(8, totalSlots)
-const maxJobs = Math.max(1, Math.floor(totalSlots / nvccThreads))
+// Upstream vLLM version of the bundled submodule, fed to the cpu source build as
+// SETUPTOOLS_SCM_PRETEND_VERSION (the submodule's .git isn't usable in the Docker
+// build context, so setuptools-scm can't derive it). MUST match the upstream half
+// of the package version in versions/current.ts and the bundled submodule's tag.
+// See UPDATING.md.
+const UPSTREAM_VLLM_VERSION = '0.21.1rc0'
 
-const sourceBuild = (v: string) => ({
-  dockerBuild: {
-    workdir: './vllm',
-    dockerfile: dockerfiles[v],
-    buildArgs: {
-      max_jobs: String(maxJobs),
-      nvcc_threads: String(nvccThreads),
-    },
-  },
-})
+// Parallelism for the cpu source build (gcc): cap at available cores, budgeting
+// ~3 GB RAM per compile job.
+const maxJobs = Math.max(
+  1,
+  Math.min(cpus().length, Math.floor(totalmem() / (1024 * 1024 * 1024) / 3)),
+)
 
 const imageConfigs = {
   nvidia: {
-    source: {
-      dockerTag:
-        'vllm/vllm-openai:nightly-4f940896a32c9e2a0eba7f50d521bf5f6b4de458',
-    },
+    source: { dockerTag: `vllm/vllm-openai:nightly-${NIGHTLY_SHA}` },
     arch: ['x86_64', 'aarch64'],
     nvidiaContainer: true,
   },
+  // vLLM's official ROCm serve image at the same commit as nvidia (amd64 only).
   rocm: {
-    source: sourceBuild('rocm'),
-    arch: ['x86_64', 'aarch64'],
+    source: { dockerTag: `vllm/vllm-openai-rocm:nightly-${NIGHTLY_SHA}` },
+    arch: ['x86_64'],
   },
+  // No prebuilt cpu image exists at this nightly commit, so cpu is built from the
+  // submodule via a version-injected copy of upstream's Dockerfile.cpu
+  // (scripts/patch-dockerfiles.sh, run by the Makefile before packing).
   cpu: {
-    source: sourceBuild('cpu'),
+    source: {
+      dockerBuild: {
+        workdir: './vllm',
+        dockerfile: './.dockerfiles/Dockerfile.cpu',
+        buildArgs: {
+          max_jobs: String(maxJobs),
+          VLLM_VERSION: UPSTREAM_VLLM_VERSION,
+        },
+      },
+    },
     arch: ['x86_64', 'aarch64'],
   },
 } as const
