@@ -43,7 +43,7 @@ vLLM ships as three variants, each a separate `.s9pk`. The variant is chosen at 
 | `rocm` | Source build via `vllm/docker/Dockerfile.rocm` | x86_64, aarch64 | AMD `amdgpu` driver (ROCm) |
 | `cpu` | Source build via `vllm/docker/Dockerfile.cpu` | x86_64, aarch64 | None (CPU inference) |
 
-The `nvidia` variant declares `nvidiaContainer: true`, so it requires the NVIDIA Container Toolkit on the StartOS host. The `rocm` variant declares an `amdgpu` hardware requirement.
+The `nvidia` variant declares `nvidiaContainer: true`, so it requires the NVIDIA Container Toolkit on the StartOS host, and a matching `nvidia` GPU hardware requirement. The `rocm` variant declares an `amdgpu` hardware requirement, and `cpu` declares none. Each accelerator variant carries its own distinct hardware requirement so StartOS offers the right one per host (and so all three can publish under a single version).
 
 `hardwareAcceleration` is `true` for the `nvidia` and `rocm` variants and `false` for `cpu`.
 
@@ -247,6 +247,7 @@ variants:
     image: vllm/vllm-openai          # upstream container
     nvidia_container: true
     arches: [x86_64, aarch64]
+    hardware: nvidia
   rocm:
     image: source build (vllm/docker/Dockerfile.rocm)
     arches: [x86_64, aarch64]
