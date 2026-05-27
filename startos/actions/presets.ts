@@ -54,6 +54,15 @@ export type ModelPreset = {
 //                                   --tokenizer-mode mistral)
 //   Nemotron 3 (Nano / Elastic)   → qwen3_coder for tools, nemotron_v3 for
 //                                   the <think>…</think> reasoning trace.
+//   Gemma 4                       → gemma4 for both tool and reasoning parsers,
+//                                   plus tool_chat_template_gemma4.jinja.
+//                                   MTP draft model is a separate ~0.5B BF16
+//                                   assistant checkpoint
+//                                   (google/gemma-4-<size>-it-assistant) that
+//                                   shares the target's KV cache. Thinking
+//                                   mode is off in the upstream chat template;
+//                                   we force it on via
+//                                   --default-chat-template-kwargs.
 //
 // Tool-call chat templates ship inside the vLLM image at
 // /vllm-workspace/examples/.
@@ -91,9 +100,7 @@ export const models: ModelPreset[] = [
           'qwen3_coder',
         ],
         minMemoryGB: 30,
-        contextByMemory: [
-          { gb: 30, ctx: 262144 },
-        ],
+        contextByMemory: [{ gb: 30, ctx: 262144 }],
       },
       'nvidia-older': {
         args: [
@@ -157,9 +164,7 @@ export const models: ModelPreset[] = [
           'qwen3_coder',
         ],
         minMemoryGB: 28,
-        contextByMemory: [
-          { gb: 28, ctx: 262144 },
-        ],
+        contextByMemory: [{ gb: 28, ctx: 262144 }],
       },
       'nvidia-hopper': {
         args: [
@@ -171,9 +176,7 @@ export const models: ModelPreset[] = [
           'qwen3_coder',
         ],
         minMemoryGB: 25,
-        contextByMemory: [
-          { gb: 25, ctx: 262144 },
-        ],
+        contextByMemory: [{ gb: 25, ctx: 262144 }],
       },
       'nvidia-older': {
         args: [
@@ -502,6 +505,211 @@ export const models: ModelPreset[] = [
           { gb: 30, ctx: 32768 },
           { gb: 64, ctx: 65536 },
           { gb: 96, ctx: 131072 },
+        ],
+      },
+    },
+  },
+  {
+    // Dense 31B multimodal flagship. MTP via a ~0.5B BF16 assistant on
+    // blackwell + hopper (vllm nightly only). older + amd skip MTP: AWQ +
+    // assistant isn't a tested combo, and ROCm speculative decoding is
+    // immature.
+    //
+    // --max-num-batched-tokens 8192: MTP auto-caps the batch token budget
+    // (default ~2048). Gemma 4's multimodal-bidirectional attention disables
+    // chunked MM input, and a single image is 2496 tokens, so the engine
+    // refuses to start unless we raise the cap.
+    id: 'gemma4-31b',
+    displayName: 'Gemma 4 31B Instruct',
+    configs: {
+      'nvidia-blackwell': {
+        args: [
+          'nvidia/Gemma-4-31B-IT-NVFP4',
+          '--quantization',
+          'modelopt',
+          '--gpu-memory-utilization',
+          '0.9',
+          '--max-num-batched-tokens',
+          '8192',
+          '--reasoning-parser',
+          'gemma4',
+          '--enable-auto-tool-choice',
+          '--tool-call-parser',
+          'gemma4',
+          '--chat-template',
+          '/vllm-workspace/examples/tool_chat_template_gemma4.jinja',
+          '--default-chat-template-kwargs',
+          '{"enable_thinking":true}',
+          '--speculative-config',
+          '{"method":"mtp","model":"google/gemma-4-31B-it-assistant","num_speculative_tokens":4}',
+        ],
+        minMemoryGB: 22,
+        contextByMemory: [
+          { gb: 22, ctx: 32768 },
+          { gb: 40, ctx: 65536 },
+          { gb: 64, ctx: 131072 },
+          { gb: 96, ctx: 262144 },
+        ],
+      },
+      'nvidia-hopper': {
+        args: [
+          'RedHatAI/gemma-4-31B-it-FP8-block',
+          '--kv-cache-dtype',
+          'fp8',
+          '--gpu-memory-utilization',
+          '0.9',
+          '--max-num-batched-tokens',
+          '8192',
+          '--reasoning-parser',
+          'gemma4',
+          '--enable-auto-tool-choice',
+          '--tool-call-parser',
+          'gemma4',
+          '--chat-template',
+          '/vllm-workspace/examples/tool_chat_template_gemma4.jinja',
+          '--default-chat-template-kwargs',
+          '{"enable_thinking":true}',
+          '--speculative-config',
+          '{"method":"mtp","model":"google/gemma-4-31B-it-assistant","num_speculative_tokens":4}',
+        ],
+        minMemoryGB: 32,
+        contextByMemory: [
+          { gb: 32, ctx: 32768 },
+          { gb: 48, ctx: 65536 },
+          { gb: 80, ctx: 131072 },
+          { gb: 120, ctx: 262144 },
+        ],
+      },
+      'nvidia-older': {
+        args: [
+          'cyankiwi/gemma-4-31B-it-AWQ-4bit',
+          '--reasoning-parser',
+          'gemma4',
+          '--enable-auto-tool-choice',
+          '--tool-call-parser',
+          'gemma4',
+          '--chat-template',
+          '/vllm-workspace/examples/tool_chat_template_gemma4.jinja',
+          '--default-chat-template-kwargs',
+          '{"enable_thinking":true}',
+        ],
+        minMemoryGB: 24,
+        contextByMemory: [
+          { gb: 24, ctx: 32768 },
+          { gb: 48, ctx: 65536 },
+          { gb: 80, ctx: 131072 },
+          { gb: 128, ctx: 262144 },
+        ],
+      },
+      amd: {
+        args: [
+          'RedHatAI/gemma-4-31B-it-FP8-dynamic',
+          '--reasoning-parser',
+          'gemma4',
+          '--enable-auto-tool-choice',
+          '--tool-call-parser',
+          'gemma4',
+          '--chat-template',
+          '/vllm-workspace/examples/tool_chat_template_gemma4.jinja',
+          '--default-chat-template-kwargs',
+          '{"enable_thinking":true}',
+        ],
+        minMemoryGB: 40,
+        contextByMemory: [
+          { gb: 40, ctx: 32768 },
+          { gb: 80, ctx: 65536 },
+          { gb: 128, ctx: 131072 },
+          { gb: 192, ctx: 262144 },
+        ],
+      },
+    },
+  },
+  {
+    // 25.2B-total / 3.8B-active MoE multimodal. MTP via a ~0.4B BF16
+    // assistant on blackwell + hopper. No community AWQ checkpoint at the
+    // time of writing, so older-NVIDIA is intentionally omitted (pre-Hopper
+    // cards can't run FP8 efficiently). This is the proven config for the
+    // DGX Spark MTP benchmark.
+    id: 'gemma4-26b-a4b',
+    displayName: 'Gemma 4 26B-A4B Instruct',
+    configs: {
+      'nvidia-blackwell': {
+        args: [
+          'RedHatAI/gemma-4-26B-A4B-it-NVFP4',
+          '--kv-cache-dtype',
+          'fp8',
+          '--gpu-memory-utilization',
+          '0.9',
+          '--max-num-batched-tokens',
+          '8192',
+          '--reasoning-parser',
+          'gemma4',
+          '--enable-auto-tool-choice',
+          '--tool-call-parser',
+          'gemma4',
+          '--chat-template',
+          '/vllm-workspace/examples/tool_chat_template_gemma4.jinja',
+          '--default-chat-template-kwargs',
+          '{"enable_thinking":true}',
+          '--speculative-config',
+          '{"method":"mtp","model":"google/gemma-4-26B-A4B-it-assistant","num_speculative_tokens":4}',
+        ],
+        minMemoryGB: 16,
+        contextByMemory: [
+          { gb: 16, ctx: 32768 },
+          { gb: 32, ctx: 65536 },
+          { gb: 64, ctx: 131072 },
+          { gb: 96, ctx: 262144 },
+        ],
+      },
+      'nvidia-hopper': {
+        args: [
+          'RedHatAI/gemma-4-26B-A4B-it-FP8-Dynamic',
+          '--kv-cache-dtype',
+          'fp8',
+          '--gpu-memory-utilization',
+          '0.9',
+          '--max-num-batched-tokens',
+          '8192',
+          '--reasoning-parser',
+          'gemma4',
+          '--enable-auto-tool-choice',
+          '--tool-call-parser',
+          'gemma4',
+          '--chat-template',
+          '/vllm-workspace/examples/tool_chat_template_gemma4.jinja',
+          '--default-chat-template-kwargs',
+          '{"enable_thinking":true}',
+          '--speculative-config',
+          '{"method":"mtp","model":"google/gemma-4-26B-A4B-it-assistant","num_speculative_tokens":4}',
+        ],
+        minMemoryGB: 28,
+        contextByMemory: [
+          { gb: 28, ctx: 32768 },
+          { gb: 48, ctx: 65536 },
+          { gb: 80, ctx: 131072 },
+          { gb: 120, ctx: 262144 },
+        ],
+      },
+      amd: {
+        args: [
+          'RedHatAI/gemma-4-26B-A4B-it-FP8-Dynamic',
+          '--reasoning-parser',
+          'gemma4',
+          '--enable-auto-tool-choice',
+          '--tool-call-parser',
+          'gemma4',
+          '--chat-template',
+          '/vllm-workspace/examples/tool_chat_template_gemma4.jinja',
+          '--default-chat-template-kwargs',
+          '{"enable_thinking":true}',
+        ],
+        minMemoryGB: 32,
+        contextByMemory: [
+          { gb: 32, ctx: 32768 },
+          { gb: 64, ctx: 65536 },
+          { gb: 96, ctx: 131072 },
+          { gb: 144, ctx: 262144 },
         ],
       },
     },

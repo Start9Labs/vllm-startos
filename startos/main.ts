@@ -1,14 +1,18 @@
+import { credentialsJson } from './fileModels/credentials.json'
+import { storeJson } from './fileModels/store.json'
 import { i18n } from './i18n'
 import { sdk } from './sdk'
-import { storeJson } from './fileModels/store.json'
 import { apiPort } from './utils'
 
 export const main = sdk.setupMain(async ({ effects }) => {
   console.info(i18n('Starting vLLM!'))
 
-  const store = await storeJson.read((s) => s).const(effects)
-  const serveArgs = store?.serveArgs
-  const apiKey = store?.apiKey
+  const serveArgs = await storeJson.read((s) => s.serveArgs).const(effects)
+
+  const apiKey = await credentialsJson.read((c) => c.apiKey).const(effects)
+  if (!apiKey) {
+    throw new Error('no apiKey in credentials.json')
+  }
 
   const vllmSub = await sdk.SubContainer.of(
     effects,
@@ -49,26 +53,25 @@ export const main = sdk.setupMain(async ({ effects }) => {
     })
   }
 
-  const command: [string, ...string[]] = [
-    'vllm',
-    'serve',
-    ...serveArgs,
-    '--host',
-    '0.0.0.0',
-    '--port',
-    String(apiPort),
-    '--download-dir',
-    '/data/models',
-  ]
-
-  if (apiKey) {
-    command.push('--api-key', apiKey)
-  }
+  const startedAt = Date.now()
+  const STARTUP_TIMEOUT_MS = 35 * 60 * 1000
 
   return base.addDaemon('primary', {
     subcontainer: vllmSub,
     exec: {
-      command,
+      command: [
+        'vllm',
+        'serve',
+        ...serveArgs,
+        '--host',
+        '0.0.0.0',
+        '--port',
+        String(apiPort),
+        '--download-dir',
+        '/data/models',
+        '--api-key',
+        apiKey,
+      ],
       env: {
         HF_HUB_CACHE: '/data/models',
         PYTHONUNBUFFERED: '1',
@@ -77,14 +80,31 @@ export const main = sdk.setupMain(async ({ effects }) => {
     },
     ready: {
       display: i18n('vLLM API'),
-      // Model download + load + JIT compile can take 30+ minutes for large
-      // weights (e.g. 35B-A3B NVFP4 from a cold cache).
-      gracePeriod: 60 * 60 * 1000,
-      fn: () =>
-        sdk.healthCheck.checkPortListening(effects, apiPort, {
+      fn: async () => {
+        const res = await sdk.healthCheck.checkPortListening(effects, apiPort, {
           successMessage: i18n('The vLLM API is ready'),
           errorMessage: i18n('The vLLM API is not ready'),
-        }),
+        })
+        if (res.result === 'success') return res
+
+        // Report "loading" during the expected startup window; once it's
+        // clearly overrun, surface a real failure pointing at the logs.
+        if (Date.now() - startedAt > STARTUP_TIMEOUT_MS) {
+          return {
+            result: 'failure',
+            message: i18n(
+              'The vLLM API did not come up within 35 minutes. Check the service logs for errors.',
+            ),
+          }
+        }
+
+        return {
+          result: 'loading',
+          message: i18n(
+            'The vLLM API is starting. A first-time model download plus load can take 30+ minutes; loading an already-cached model can take 15+ minutes. Exact time depends on your hardware resources and network bandwidth.',
+          ),
+        }
+      },
     },
     requires: ['ldconfig'],
   })

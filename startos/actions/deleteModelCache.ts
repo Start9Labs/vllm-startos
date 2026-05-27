@@ -62,8 +62,10 @@ export const deleteModelCache = sdk.Action.withInput(
 
     return {
       version: '1' as const,
-      title: 'Cache Deleted',
-      message: `Model cache for "${input.model}" has been deleted.`,
+      title: i18n('Cache Deleted'),
+      message: i18n('Model cache for "${model}" has been deleted.', {
+        model: input.model,
+      }),
       result: null,
     }
   },
