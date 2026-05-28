@@ -14,7 +14,7 @@ nvidia and rocm pin the **same** nightly commit (`NIGHTLY_SHA` in the manifest),
 
 1. **`NIGHTLY_SHA`** in `startos/manifest/index.ts` — the commit for the prebuilt nvidia + rocm `dockerTag`s.
 2. **`UPSTREAM_VLLM_VERSION`** in `startos/manifest/index.ts` — fed to the cpu source build as the `VLLM_VERSION` build arg → `SETUPTOOLS_SCM_PRETEND_VERSION_FOR_VLLM`. **PEP 440** notation (no hyphen): `0.21.1rc0`.
-3. **`startos/versions/current.ts`** — `version`'s upstream half (left of the final `:`; the StartOS revision is everything to the right). **ExVer** notation, which requires a hyphen before a pre-release: tag `v0.21.1rc0` → `0.21.1-rc0:0`.
+3. **`startos/versions/current.ts`** — `version`'s upstream half (left of the final `:`; the StartOS revision is everything to the right). **ExVer** notation: a hyphen introduces the pre-release, and its alpha and numeric parts are **separate dot-delimited identifiers** — `rc` and `0` cannot be glued together (ExVer rejects `rc0` with `Expected ".", ":", or [a-zA-Z]`). So tag `v0.21.1rc0` → `0.21.1-rc.0:0`.
 4. **The `vllm/` submodule** — checked out at the matching tag/commit.
 
 Items 2–4 are the *same* upstream version in three notations (PEP 440 / ExVer / git); item 1 is the matching commit SHA for the prebuilt images. Keep them consistent.

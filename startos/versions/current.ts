@@ -1,7 +1,7 @@
 import { VersionInfo } from '@start9labs/start-sdk'
 
 export const current = VersionInfo.of({
-  version: '0.21.1-rc0:0',
+  version: '0.21.1-rc.0:0',
   releaseNotes: {
     en_US:
       'Add Gemma 4 31B and 26B-A4B Instruct presets with MTP speculative decoding and reasoning ("thinking") enabled by default. Fix hardware detection on unified-memory NVIDIA parts (DGX Spark / GB10), where every preset previously appeared disabled. Bump bundled vLLM to upstream master.',
