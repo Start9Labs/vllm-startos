@@ -73,11 +73,18 @@ export const manifest = setupManifest({
       imageConfigs[variant as keyof typeof imageConfigs] ?? imageConfigs.cpu,
     ),
   },
-  hardwareAcceleration: variant !== 'cpu',
+  // Uniform across variants on purpose. The registry merges a version's variant
+  // s9pks into one entry and compares PackageMetadata — which includes
+  // hardwareAcceleration — for exact equality; a per-variant value (cpu=false,
+  // gpu=true) fails publish with "package metadata mismatch". The field that
+  // legitimately distinguishes variants is hardwareRequirements below, which the
+  // registry keys per-s9pk rather than comparing.
+  hardwareAcceleration: true,
   dependencies: {},
-  // Each variant needs a distinct hardware requirement, or variants sharing one
-  // (e.g. two with an empty requirement) collide on publish as a registry
-  // metadata mismatch. cpu is the sole no-requirement fallback.
+  // Each variant needs a distinct hardware requirement: the registry keys a
+  // version's s9pks by hardwareRequirements, so two variants sharing one (e.g.
+  // two with an empty requirement) would clobber each other. cpu is the sole
+  // no-requirement fallback.
   hardwareRequirements: {
     device:
       variant === 'nvidia'
