@@ -37,11 +37,17 @@ inject() {
     exit 1
   fi
 
+  # Use the GENERIC SETUPTOOLS_SCM_PRETEND_VERSION, not the dist-named
+  # ..._FOR_VLLM form. vllm's setup.py calls setuptools_scm.get_version() with no
+  # dist_name, and setuptools-scm v10 (refactored onto vcs_versioning) no longer
+  # infers the name from pyproject in that legacy call, so it never matches the
+  # named override and only consults the generic var. Safe here because this
+  # Dockerfile builds exactly one project (vllm).
   awk -v anchor="$anchor" '
     { print }
     $0 ~ anchor && !injected {
       print "ARG VLLM_VERSION"
-      print "ENV SETUPTOOLS_SCM_PRETEND_VERSION_FOR_VLLM=${VLLM_VERSION}"
+      print "ENV SETUPTOOLS_SCM_PRETEND_VERSION=${VLLM_VERSION}"
       injected = 1
     }
   ' "$in" > "$dst"

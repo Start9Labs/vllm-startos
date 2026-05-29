@@ -13,7 +13,7 @@ nvidia and rocm pin the **same** nightly commit (`NIGHTLY_SHA` in the manifest),
 `vllm` derives its Python version from git via setuptools-scm, which can't read the submodule's `.git` inside the Docker build context, so the cpu build's version is supplied explicitly and **hand-maintained** — there is no way to derive it automatically. On every upstream bump, set these to the same upstream vLLM commit/version:
 
 1. **`NIGHTLY_SHA`** in `startos/manifest/index.ts` — the commit for the prebuilt nvidia + rocm `dockerTag`s.
-2. **`UPSTREAM_VLLM_VERSION`** in `startos/manifest/index.ts` — fed to the cpu source build as the `VLLM_VERSION` build arg → `SETUPTOOLS_SCM_PRETEND_VERSION_FOR_VLLM`. **PEP 440** notation (no hyphen): `0.21.1rc0`.
+2. **`UPSTREAM_VLLM_VERSION`** in `startos/manifest/index.ts` — fed to the cpu source build as the `VLLM_VERSION` build arg → `SETUPTOOLS_SCM_PRETEND_VERSION`. **PEP 440** notation (no hyphen): `0.21.1rc0`.
 3. **`startos/versions/current.ts`** — `version`'s upstream half (left of the final `:`; the StartOS revision is everything to the right). **ExVer** notation: a hyphen introduces the pre-release, and its alpha and numeric parts are **separate dot-delimited identifiers** — `rc` and `0` cannot be glued together (ExVer rejects `rc0` with `Expected ".", ":", or [a-zA-Z]`). So tag `v0.21.1rc0` → `0.21.1-rc.0:0`.
 4. **The `vllm/` submodule** — checked out at the matching tag/commit.
 
@@ -21,7 +21,9 @@ Items 2–4 are the *same* upstream version in three notations (PEP 440 / ExVer 
 
 ## The patched cpu Dockerfile
 
-The `cpu` variant does **not** build from `vllm/docker/Dockerfile.cpu` directly. `scripts/patch-dockerfiles.sh` copies it to `.dockerfiles/` (gitignored) and injects an `ENV SETUPTOOLS_SCM_PRETEND_VERSION_FOR_VLLM` line into the root build stage (`AS base-common`, inherited by the stage that runs `setup.py`). The Makefile's `cpu` target runs it automatically before packing. We do this instead of vendoring a full copy of the Dockerfile.
+The `cpu` variant does **not** build from `vllm/docker/Dockerfile.cpu` directly. `scripts/patch-dockerfiles.sh` copies it to `.dockerfiles/` (gitignored) and injects an `ENV SETUPTOOLS_SCM_PRETEND_VERSION` line into the root build stage (`AS base-common`, inherited by the stage that runs `setup.py`). The Makefile's `cpu` target runs it automatically before packing. We do this instead of vendoring a full copy of the Dockerfile.
+
+We inject the **generic** `SETUPTOOLS_SCM_PRETEND_VERSION`, not the dist-named `..._FOR_VLLM` form. vllm's `setup.py` calls `setuptools_scm.get_version()` with no `dist_name`, and setuptools-scm v10 (refactored onto the `vcs_versioning` backend) no longer infers the project name from `pyproject.toml` in that legacy call — so it never matches the named override and only consults the generic variable. The generic var is safe here because this Dockerfile builds exactly one project.
 
 The injection is keyed to the `AS base-common` stage anchor. If a vllm bump restructures that stage, the script **fails loudly** — re-check the anchor in `scripts/patch-dockerfiles.sh` against the new upstream Dockerfile.
 
