@@ -51,7 +51,9 @@ const imageConfigs = {
         },
       },
     },
-    arch: ['x86_64', 'aarch64'],
+    // x86_64 only: an emulated aarch64 source build is impractical (multi-hour
+    // under QEMU), and upstream's default cpu build stage is amd64-only zentorch.
+    arch: ['x86_64'],
   },
 } as const
 

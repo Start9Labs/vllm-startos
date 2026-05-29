@@ -256,7 +256,7 @@ variants:
     hardware: amdgpu
   cpu:
     image: source build (vllm/docker/Dockerfile.cpu)
-    arches: [x86_64, aarch64]
+    arches: [x86_64]
 volumes:
   main: /data
   public: (mountable read-only by dependents; contains credentials.json)

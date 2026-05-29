@@ -1,24 +1,23 @@
 # overrides to s9pk.mk must precede the include statement
 # Leaf-level matrix targets: each <variant>-<arch> entry builds exactly one
 # s9pk, so the release workflow's matrix fans out one runner per entry instead
-# of building a variant's arches serially on one runner. Isolating each arch on
-# its own runner is load-bearing: it keeps the two cpu arches' BuildKit caches
-# separate (a shared .deps cache let the x86 oneDNN checkout clobber the arm
-# build) and puts only one large GPU image on each nvidia runner (two exhausted
-# the runner's disk).
-TARGETS := nvidia-x86 nvidia-arm rocm-x86 cpu-x86 cpu-arm
+# of building a variant's arches serially on one runner. This keeps each nvidia
+# arch's CUDA image on its own runner — packing both on one runner exhausted its
+# disk. cpu is x86_64-only: an emulated aarch64 source build is impractical
+# (multi-hour), and upstream's default cpu build stage is amd64-only zentorch.
+TARGETS := nvidia-x86 nvidia-arm rocm-x86 cpu-x86
 ARCHES := x86 arm
 
 include s9pk.mk
 
-.PHONY += nvidia nvidia-x86 nvidia-arm rocm rocm-x86 cpu cpu-x86 cpu-arm patch-dockerfiles
+.PHONY += nvidia nvidia-x86 nvidia-arm rocm rocm-x86 cpu cpu-x86 patch-dockerfiles
 
-# Aggregate variant targets so `make nvidia` / `make cpu` still build every arch
-# locally; the matrix uses the leaf targets in TARGETS directly. rocm uses
-# vLLM's prebuilt ROCm image (amd64 only), so it has just the one arch.
+# Aggregate variant targets so `make nvidia` still builds every arch locally;
+# the matrix uses the leaf targets in TARGETS directly. rocm uses vLLM's prebuilt
+# ROCm image (amd64 only) and cpu is built x86_64-only, so each has one arch.
 nvidia: nvidia-x86 nvidia-arm
 rocm: rocm-x86
-cpu: cpu-x86 cpu-arm
+cpu: cpu-x86
 
 # nvidia and rocm use vLLM's prebuilt images, so a leaf just packs that arch.
 nvidia-%:; VARIANT=nvidia $(MAKE) $*

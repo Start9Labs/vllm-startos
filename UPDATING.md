@@ -4,7 +4,7 @@ vLLM ships three variants in `startos/manifest/index.ts`:
 
 - `nvidia` — vLLM's prebuilt image `vllm/vllm-openai:nightly-<sha>` via `dockerTag` (x86_64 + aarch64).
 - `rocm` — vLLM's prebuilt image `vllm/vllm-openai-rocm:nightly-<sha>` via `dockerTag` (x86_64 only).
-- `cpu` — source-built from the `vllm/` git submodule via a patched copy of `vllm/docker/Dockerfile.cpu` (no prebuilt cpu image is published at a nightly commit).
+- `cpu` — source-built from the `vllm/` git submodule via a patched copy of `vllm/docker/Dockerfile.cpu` (no prebuilt cpu image is published at a nightly commit; **x86_64 only** — an emulated aarch64 source build is impractical, and upstream's default cpu build stage is amd64-only zentorch).
 
 nvidia and rocm pin the **same** nightly commit (`NIGHTLY_SHA` in the manifest), and the submodule is checked out at that commit too — keep all of them on the same upstream commit.
 
