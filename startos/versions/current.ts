@@ -1,22 +1,20 @@
 import { VersionInfo } from '@start9labs/start-sdk'
 
 export const current = VersionInfo.of({
-  version: '0.21.1-rc.0:0',
+  version: '0.22.1-rc.0:0',
   releaseNotes: {
     en_US:
-      'Add Gemma 4 31B and 26B-A4B Instruct presets with MTP speculative decoding and reasoning ("thinking") enabled by default. Fix hardware detection on unified-memory NVIDIA parts (DGX Spark / GB10), where every preset previously appeared disabled. Bump bundled vLLM to upstream master.',
+      'Advance bundled vLLM to the 2026-05-30 nightly (3fd9d2d), crossing the v0.22.0 release — adds new model support (Step-3.7-Flash, Cosmos3 Reasoner, DeepSeek V4 MTP), CPU top-k/top-p sampling kernels with zentorch routing for AMD Zen CPUs, and Responses API chat_template_kwargs support, plus assorted performance and bug fixes.',
     es_ES:
-      'Añade los presets de Gemma 4 31B y 26B-A4B Instruct con decodificación especulativa MTP y razonamiento ("thinking") activado por defecto. Corrige la detección de hardware en GPUs NVIDIA de memoria unificada (DGX Spark / GB10), donde previamente todos los presets aparecían deshabilitados. Actualiza el vLLM incluido a la rama master de upstream.',
+      'Actualiza el vLLM incluido a la nightly del 2026-05-30 (3fd9d2d), abarcando la versión v0.22.0: añade soporte para nuevos modelos (Step-3.7-Flash, Cosmos3 Reasoner, DeepSeek V4 MTP), kernels de muestreo top-k/top-p para CPU con enrutamiento zentorch para CPUs AMD Zen y soporte de chat_template_kwargs en la Responses API, además de diversas mejoras de rendimiento y correcciones de errores.',
     de_DE:
-      'Fügt Gemma-4-31B- und 26B-A4B-Instruct-Presets mit MTP-spekulativer Dekodierung und standardmäßig aktiviertem Reasoning ("Thinking") hinzu. Behebt die Hardware-Erkennung auf NVIDIA-Chips mit Unified Memory (DGX Spark / GB10), bei denen zuvor alle Presets als deaktiviert angezeigt wurden. Aktualisiert das mitgelieferte vLLM auf den Upstream-Master.',
+      'Aktualisiert das mitgelieferte vLLM auf den Nightly-Build vom 2026-05-30 (3fd9d2d) und umfasst das Release v0.22.0 — ergänzt Unterstützung für neue Modelle (Step-3.7-Flash, Cosmos3 Reasoner, DeepSeek V4 MTP), CPU-Sampling-Kernels (top-k/top-p) mit zentorch-Routing für AMD-Zen-CPUs und Unterstützung für chat_template_kwargs in der Responses-API sowie diverse Performance- und Fehlerbehebungen.',
     pl_PL:
-      'Dodaje ustawienia Gemma 4 31B oraz 26B-A4B Instruct z dekodowaniem spekulacyjnym MTP i włączonym domyślnie rozumowaniem („thinking"). Naprawia wykrywanie sprzętu na układach NVIDIA z pamięcią zunifikowaną (DGX Spark / GB10), gdzie wcześniej wszystkie ustawienia były pokazywane jako wyłączone. Aktualizuje dołączony vLLM do gałęzi master upstreamu.',
+      'Aktualizuje dołączony vLLM do kompilacji nightly z 2026-05-30 (3fd9d2d), obejmując wydanie v0.22.0 — dodaje obsługę nowych modeli (Step-3.7-Flash, Cosmos3 Reasoner, DeepSeek V4 MTP), jądra próbkowania top-k/top-p dla CPU z routingiem zentorch dla procesorów AMD Zen oraz obsługę chat_template_kwargs w Responses API, a także różne usprawnienia wydajności i poprawki błędów.',
     fr_FR:
-      'Ajoute les presets Gemma 4 31B et 26B-A4B Instruct avec décodage spéculatif MTP et raisonnement (« thinking ») activé par défaut. Corrige la détection du matériel sur les GPU NVIDIA à mémoire unifiée (DGX Spark / GB10), où tous les presets apparaissaient auparavant comme désactivés. Met à jour le vLLM intégré vers la branche master en amont.',
+      'Met à jour le vLLM intégré vers la nightly du 2026-05-30 (3fd9d2d), couvrant la version v0.22.0 — ajoute la prise en charge de nouveaux modèles (Step-3.7-Flash, Cosmos3 Reasoner, DeepSeek V4 MTP), des kernels d’échantillonnage top-k/top-p pour CPU avec routage zentorch pour les CPU AMD Zen et la prise en charge de chat_template_kwargs dans la Responses API, ainsi que diverses améliorations de performances et corrections de bugs.',
   },
-  // No state changes: the new presets are added entries in setModel, the
-  // hardware-detection fix is pure runtime logic, and the vllm bump is an
-  // image swap.
+  // No state changes: the vllm bump is an image/submodule swap.
   migrations: {
     up: async ({ effects }) => {},
     down: async ({ effects }) => {},
