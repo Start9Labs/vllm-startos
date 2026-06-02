@@ -1,18 +1,18 @@
 import { VersionInfo } from '@start9labs/start-sdk'
 
 export const current = VersionInfo.of({
-  version: '0.22.1-rc.0:0',
+  version: '0.22.1-rc.0:1',
   releaseNotes: {
     en_US:
-      'Advance bundled vLLM to the 2026-05-30 nightly (3fd9d2d), crossing the v0.22.0 release — adds new model support (Step-3.7-Flash, Cosmos3 Reasoner, DeepSeek V4 MTP), CPU top-k/top-p sampling kernels with zentorch routing for AMD Zen CPUs, and Responses API chat_template_kwargs support, plus assorted performance and bug fixes.',
+      'Advance bundled vLLM to the 2026-06-01 nightly (f91fb2f) — adds JetBrains Mellum v2 code-generation model support, a ~20% cutlass FP8 scaled-mm kernel speedup, a ROCm AITER upgrade to v0.1.13.post1, and assorted bug fixes (Gemma4-MM, MiniCPM-O audio, GLM-5.1).',
     es_ES:
-      'Actualiza el vLLM incluido a la nightly del 2026-05-30 (3fd9d2d), abarcando la versión v0.22.0: añade soporte para nuevos modelos (Step-3.7-Flash, Cosmos3 Reasoner, DeepSeek V4 MTP), kernels de muestreo top-k/top-p para CPU con enrutamiento zentorch para CPUs AMD Zen y soporte de chat_template_kwargs en la Responses API, además de diversas mejoras de rendimiento y correcciones de errores.',
+      'Actualiza el vLLM incluido a la nightly del 2026-06-01 (f91fb2f): añade soporte para el modelo de generación de código JetBrains Mellum v2, una aceleración de ~20 % del kernel cutlass FP8 scaled-mm, una actualización de ROCm AITER a v0.1.13.post1 y diversas correcciones de errores (Gemma4-MM, audio de MiniCPM-O, GLM-5.1).',
     de_DE:
-      'Aktualisiert das mitgelieferte vLLM auf den Nightly-Build vom 2026-05-30 (3fd9d2d) und umfasst das Release v0.22.0 — ergänzt Unterstützung für neue Modelle (Step-3.7-Flash, Cosmos3 Reasoner, DeepSeek V4 MTP), CPU-Sampling-Kernels (top-k/top-p) mit zentorch-Routing für AMD-Zen-CPUs und Unterstützung für chat_template_kwargs in der Responses-API sowie diverse Performance- und Fehlerbehebungen.',
+      'Aktualisiert das mitgelieferte vLLM auf den Nightly-Build vom 2026-06-01 (f91fb2f) — ergänzt Unterstützung für das Codegenerierungsmodell JetBrains Mellum v2, eine ~20 % schnellere cutlass-FP8-scaled-mm-Kernel-Leistung, ein ROCm-AITER-Upgrade auf v0.1.13.post1 sowie diverse Fehlerbehebungen (Gemma4-MM, MiniCPM-O-Audio, GLM-5.1).',
     pl_PL:
-      'Aktualizuje dołączony vLLM do kompilacji nightly z 2026-05-30 (3fd9d2d), obejmując wydanie v0.22.0 — dodaje obsługę nowych modeli (Step-3.7-Flash, Cosmos3 Reasoner, DeepSeek V4 MTP), jądra próbkowania top-k/top-p dla CPU z routingiem zentorch dla procesorów AMD Zen oraz obsługę chat_template_kwargs w Responses API, a także różne usprawnienia wydajności i poprawki błędów.',
+      'Aktualizuje dołączony vLLM do kompilacji nightly z 2026-06-01 (f91fb2f) — dodaje obsługę modelu generowania kodu JetBrains Mellum v2, ~20 % przyspieszenie jądra cutlass FP8 scaled-mm, aktualizację ROCm AITER do v0.1.13.post1 oraz różne poprawki błędów (Gemma4-MM, dźwięk MiniCPM-O, GLM-5.1).',
     fr_FR:
-      'Met à jour le vLLM intégré vers la nightly du 2026-05-30 (3fd9d2d), couvrant la version v0.22.0 — ajoute la prise en charge de nouveaux modèles (Step-3.7-Flash, Cosmos3 Reasoner, DeepSeek V4 MTP), des kernels d’échantillonnage top-k/top-p pour CPU avec routage zentorch pour les CPU AMD Zen et la prise en charge de chat_template_kwargs dans la Responses API, ainsi que diverses améliorations de performances et corrections de bugs.',
+      'Met à jour le vLLM intégré vers la nightly du 2026-06-01 (f91fb2f) — ajoute la prise en charge du modèle de génération de code JetBrains Mellum v2, une accélération d’environ 20 % du kernel cutlass FP8 scaled-mm, une mise à niveau de ROCm AITER vers v0.1.13.post1 et diverses corrections de bugs (Gemma4-MM, audio MiniCPM-O, GLM-5.1).',
   },
   // No state changes: the vllm bump is an image/submodule swap.
   migrations: {
