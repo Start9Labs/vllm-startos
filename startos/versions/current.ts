@@ -1,22 +1,19 @@
 import { VersionInfo } from '@start9labs/start-sdk'
 
 export const current = VersionInfo.of({
-  version: '0.21.1-rc.0:0',
+  version: '0.21.1-rc.0:1',
   releaseNotes: {
     en_US:
-      'Add Gemma 4 31B and 26B-A4B Instruct presets with MTP speculative decoding and reasoning ("thinking") enabled by default. Fix hardware detection on unified-memory NVIDIA parts (DGX Spark / GB10), where every preset previously appeared disabled. Bump bundled vLLM to upstream master.',
+      'Internal: the API key is now regenerated automatically whenever it is missing, and the Set Model prompt appears whenever no model is selected (not only on first install). Removes the redundant API-key setup task, and fixes the saved model selection being cleared on restore or container rebuild.',
     es_ES:
-      'Añade los presets de Gemma 4 31B y 26B-A4B Instruct con decodificación especulativa MTP y razonamiento ("thinking") activado por defecto. Corrige la detección de hardware en GPUs NVIDIA de memoria unificada (DGX Spark / GB10), donde previamente todos los presets aparecían deshabilitados. Actualiza el vLLM incluido a la rama master de upstream.',
+      'Interno: la clave API ahora se regenera automáticamente cuando falta, y el aviso de Seleccionar modelo aparece siempre que no haya un modelo seleccionado (no solo en la primera instalación). Elimina la tarea redundante de configuración de la clave API y corrige que la selección de modelo guardada se borrara al restaurar o reconstruir el contenedor.',
     de_DE:
-      'Fügt Gemma-4-31B- und 26B-A4B-Instruct-Presets mit MTP-spekulativer Dekodierung und standardmäßig aktiviertem Reasoning ("Thinking") hinzu. Behebt die Hardware-Erkennung auf NVIDIA-Chips mit Unified Memory (DGX Spark / GB10), bei denen zuvor alle Presets als deaktiviert angezeigt wurden. Aktualisiert das mitgelieferte vLLM auf den Upstream-Master.',
+      'Intern: Der API-Schlüssel wird jetzt automatisch neu erzeugt, wenn er fehlt, und die Aufforderung „Modell auswählen“ erscheint immer, wenn kein Modell ausgewählt ist (nicht nur bei der Erstinstallation). Entfernt die überflüssige Einrichtungsaufgabe für den API-Schlüssel und behebt, dass die gespeicherte Modellauswahl bei einer Wiederherstellung oder einem Container-Neuaufbau gelöscht wurde.',
     pl_PL:
-      'Dodaje ustawienia Gemma 4 31B oraz 26B-A4B Instruct z dekodowaniem spekulacyjnym MTP i włączonym domyślnie rozumowaniem („thinking"). Naprawia wykrywanie sprzętu na układach NVIDIA z pamięcią zunifikowaną (DGX Spark / GB10), gdzie wcześniej wszystkie ustawienia były pokazywane jako wyłączone. Aktualizuje dołączony vLLM do gałęzi master upstreamu.',
+      'Wewnętrzne: klucz API jest teraz automatycznie generowany ponownie, gdy go brakuje, a monit Wybierz model pojawia się zawsze, gdy nie wybrano modelu (nie tylko przy pierwszej instalacji). Usuwa zbędne zadanie konfiguracji klucza API i naprawia usuwanie zapisanego wyboru modelu podczas przywracania lub przebudowy kontenera.',
     fr_FR:
-      'Ajoute les presets Gemma 4 31B et 26B-A4B Instruct avec décodage spéculatif MTP et raisonnement (« thinking ») activé par défaut. Corrige la détection du matériel sur les GPU NVIDIA à mémoire unifiée (DGX Spark / GB10), où tous les presets apparaissaient auparavant comme désactivés. Met à jour le vLLM intégré vers la branche master en amont.',
+      "Interne : la clé API est désormais régénérée automatiquement lorsqu'elle est absente, et l'invite Choisir le modèle apparaît dès qu'aucun modèle n'est sélectionné (pas seulement lors de la première installation). Supprime la tâche de configuration redondante de la clé API et corrige l'effacement de la sélection de modèle enregistrée lors d'une restauration ou d'une reconstruction du conteneur.",
   },
-  // No state changes: the new presets are added entries in setModel, the
-  // hardware-detection fix is pure runtime logic, and the vllm bump is an
-  // image swap.
   migrations: {
     up: async ({ effects }) => {},
     down: async ({ effects }) => {},

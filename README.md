@@ -65,7 +65,7 @@ Layout under `/data` (the `main` volume):
 
 The `public` volume contains:
 
-- `credentials.json` -- `{ "apiKey": "<22-char string>" }`. The canonical home for the API key: it is generated here at install, read here by the daemon (`--api-key`) and the **Get API Key** action, and mounted read-only by dependents (see [Dependent Services](#dependent-services)).
+- `credentials.json` -- `{ "apiKey": "<22-char string>" }`. The canonical home for the API key: it is generated here automatically (and re-generated whenever it goes missing), read here by the daemon (`--api-key`) and the **Get API Key** action, and mounted read-only by dependents (see [Dependent Services](#dependent-services)).
 
 ---
 
@@ -75,13 +75,13 @@ The `public` volume contains:
 |------|----------|---------|
 | Install | `pip install vllm` or run upstream container | Install from marketplace or sideload `.s9pk` |
 | Configure model | CLI flags to `vllm serve` | "Set Model" action (preset or custom argv) |
-| Get API key | User-provided `--api-key` | "Get API Key" action (key generated at install) |
+| Get API key | User-provided `--api-key` | "Get API Key" action (key generated automatically) |
 | Start server | `vllm serve <model> --host 0.0.0.0 --port 8000 ...` | Automatic; argv driven by store |
 
 On install:
 
-1. A 22-character random API key is generated and written to `credentials.json` on the `public` volume.
-2. Two critical tasks are queued: **Get API Key** and **Set Model**.
+1. A 22-character random API key is generated and written to `credentials.json` on the `public` volume. It is regenerated automatically if it ever goes missing — clearing it and restarting rotates the key.
+2. A critical **Set Model** task is queued whenever no model is selected (so always on a fresh install). The API key is generated automatically — retrieve it any time via **Get API Key**; it is not a setup task.
 3. Until **Set Model** runs, the daemon idles (`sleep infinity`) and the health check reports "No model selected." Selecting a model restarts the service with the chosen argv.
 
 The first start after a model selection downloads the weights into `/data/models`. For large quantized models from a cold cache, this plus JIT compilation can take 30+ minutes; during that window the health check reports a **loading** state with a message explaining the wait, rather than a failure.
