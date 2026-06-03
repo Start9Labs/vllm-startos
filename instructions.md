@@ -4,7 +4,7 @@ vLLM does not serve anything until you choose a model. Until you run the **Set M
 
 ## Documentation
 
-- [vLLM documentation](https://docs.vllm.ai/) — the upstream guide to the inference engine, its OpenAI-compatible API, and supported models.
+- [vLLM documentation](https://github.com/vllm-project/vllm/tree/main/docs) — the upstream guide to the inference engine, its OpenAI-compatible API, and supported models.
 
 ## What you get on StartOS
 
