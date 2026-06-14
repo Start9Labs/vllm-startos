@@ -10,7 +10,7 @@ const mutable = <T>(value: T): Mutable<T> => value as Mutable<T>
 // Pinned upstream vLLM nightly commit. nvidia and rocm both run vLLM's official
 // prebuilt images at this commit, so they stay in lockstep — bump it on a vllm
 // update (and bump the submodule + versions to match). See UPDATING.md.
-const NIGHTLY_SHA = '1033ffac2eccf986fdd880f4dee64ca3b22c63c9'
+const NIGHTLY_SHA = '54bbf5166842932fa7abc34a14df850594daeb5e'
 
 // Upstream vLLM version of the bundled submodule, fed to the cpu source build as
 // SETUPTOOLS_SCM_PRETEND_VERSION (the submodule's .git isn't usable in the Docker
