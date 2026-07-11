@@ -101,10 +101,13 @@ export const manifest = setupManifest({
           ? [
               {
                 class: 'display',
-                product: null,
+                // Discrete-AMD allowlist: ROCm is unreliable on integrated Radeon (e.g. 680M); iGPUs lack these product names and fall back to the cpu variant.
+                product:
+                  '(?i)(Navi\\s*\\d+|Radeon\\s*RX\\s*\\d{3}|Radeon\\s*RX\\s*Vega|Radeon\\s*VII|Instinct)',
                 vendor: null,
                 driver: 'amdgpu',
-                description: 'An AMD GPU',
+                description:
+                  'A discrete AMD GPU supported by ROCm (integrated Radeon graphics are not supported)',
               },
             ]
           : [],
