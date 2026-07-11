@@ -37,15 +37,15 @@
 
 vLLM ships as three variants, each a separate `.s9pk`. The variant is chosen at build time and corresponds to a different image source.
 
-| Variant | Image source | Architectures | GPU runtime |
-|---------|--------------|---------------|-------------|
-| `nvidia` | Upstream container `vllm/vllm-openai` (unmodified) | x86_64, aarch64 | NVIDIA Container Toolkit |
-| `rocm` | Upstream container `vllm/vllm-openai-rocm` (unmodified) | x86_64 | Discrete AMD GPU (`amdgpu` driver, ROCm) |
-| `cpu` | Source build via `vllm/docker/Dockerfile.cpu` | x86_64, aarch64 | None (CPU inference) |
+| Variant  | Image source                                            | Architectures   | GPU runtime                              |
+| -------- | ------------------------------------------------------- | --------------- | ---------------------------------------- |
+| `nvidia` | Upstream container `vllm/vllm-openai` (unmodified)      | x86_64, aarch64 | NVIDIA Container Toolkit                 |
+| `rocm`   | Upstream container `vllm/vllm-openai-rocm` (unmodified) | x86_64          | Discrete AMD GPU (`amdgpu` driver, ROCm) |
+| `cpu`    | Source build via `vllm/docker/Dockerfile.cpu`           | x86_64, aarch64 | None (CPU inference)                     |
 
 `nvidia` and `rocm` use vLLM's prebuilt nightly images pinned to the same commit; `cpu` has no prebuilt image at that commit and is built from the bundled `vllm/` submodule.
 
-The `nvidia` variant declares `nvidiaContainer: true`, so it requires the NVIDIA Container Toolkit on the StartOS host, and a matching `nvidia` GPU hardware requirement. The `rocm` variant declares an `amdgpu` hardware requirement narrowed to **discrete** AMD GPUs by product name (Navi / Radeon RX / Instinct) — integrated Radeon graphics (e.g. the Radeon 680M in Ryzen APUs), where ROCm can't run, don't match and fall back to `cpu`. `cpu` declares no hardware requirement. Each accelerator variant carries its own distinct hardware requirement so StartOS offers the right one per host (and so all three can publish under a single version).
+The `nvidia` variant declares `nvidiaContainer: true` and a matching `nvidia` GPU hardware requirement, so it is offered only when StartOS is installed from a `-nvidia` platform flavor (`x86_64-nvidia` / `aarch64-nvidia`) — those install images bundle the NVIDIA driver and container toolkit. On the standard or `-nonfree` flavors the NVIDIA driver is absent, so the card's `nvidia` driver never appears, the `nvidia` variant isn't selected, and the host gets `cpu` even with an NVIDIA card present. The `rocm` variant declares an `amdgpu` hardware requirement narrowed to **discrete** AMD GPUs by product name (Navi / Radeon RX / Instinct) — integrated Radeon graphics (e.g. the Radeon 680M in Ryzen APUs), where ROCm can't run, don't match and fall back to `cpu`. `cpu` declares no hardware requirement. Each accelerator variant carries its own distinct hardware requirement so StartOS offers the right one per host (and so all three can publish under a single version).
 
 `hardwareAcceleration` is `true` for the `nvidia` and `rocm` variants and `false` for `cpu`.
 
@@ -53,10 +53,10 @@ The `nvidia` variant declares `nvidiaContainer: true`, so it requires the NVIDIA
 
 ## Volume and Data Layout
 
-| Volume | Mount point | Purpose |
-|--------|-------------|---------|
-| `main` | `/data` | Model weights cache and StartOS-managed private config |
-| `public` | -- | Read-only-mountable file(s) for dependent services (see [Dependent Services](#dependent-services)) |
+| Volume   | Mount point | Purpose                                                                                            |
+| -------- | ----------- | -------------------------------------------------------------------------------------------------- |
+| `main`   | `/data`     | Model weights cache and StartOS-managed private config                                             |
+| `public` | --          | Read-only-mountable file(s) for dependent services (see [Dependent Services](#dependent-services)) |
 
 Layout under `/data` (the `main` volume):
 
@@ -71,12 +71,12 @@ The `public` volume contains:
 
 ## Installation and First-Run Flow
 
-| Step | Upstream | StartOS |
-|------|----------|---------|
-| Install | `pip install vllm` or run upstream container | Install from marketplace or sideload `.s9pk` |
-| Configure model | CLI flags to `vllm serve` | "Set Model" action (preset or custom argv) |
-| Get API key | User-provided `--api-key` | "Get API Key" action (key generated automatically) |
-| Start server | `vllm serve <model> --host 0.0.0.0 --port 8000 ...` | Automatic; argv driven by store |
+| Step            | Upstream                                            | StartOS                                            |
+| --------------- | --------------------------------------------------- | -------------------------------------------------- |
+| Install         | `pip install vllm` or run upstream container        | Install from marketplace or sideload `.s9pk`       |
+| Configure model | CLI flags to `vllm serve`                           | "Set Model" action (preset or custom argv)         |
+| Get API key     | User-provided `--api-key`                           | "Get API Key" action (key generated automatically) |
+| Start server    | `vllm serve <model> --host 0.0.0.0 --port 8000 ...` | Automatic; argv driven by store                    |
 
 On install:
 
@@ -94,10 +94,10 @@ vLLM is configured through StartOS actions, not environment variables. The compl
 
 `store.json` shape:
 
-| Field | Type | Set by |
-|-------|------|--------|
-| `serveArgs` | string[] | `Set Model` action |
-| `modelSelection` | object | `Set Model` action (remembers the chosen preset to pre-fill the form) |
+| Field            | Type     | Set by                                                                |
+| ---------------- | -------- | --------------------------------------------------------------------- |
+| `serveArgs`      | string[] | `Set Model` action                                                    |
+| `modelSelection` | object   | `Set Model` action (remembers the chosen preset to pre-fill the form) |
 
 The API key is **not** in `store.json`; it lives in `credentials.json` on the `public` volume (see [Volume and Data Layout](#volume-and-data-layout)).
 
@@ -115,9 +115,9 @@ Anything else (tensor parallelism, KV cache dtype, quantization, chat template, 
 
 ## Network Access and Interfaces
 
-| Interface | Port | Protocol | Type | Purpose |
-|-----------|------|----------|------|---------|
-| vLLM API Server | 8000 | HTTP | API | OpenAI-compatible inference API |
+| Interface       | Port | Protocol | Type | Purpose                         |
+| --------------- | ---- | -------- | ---- | ------------------------------- |
+| vLLM API Server | 8000 | HTTP     | API  | OpenAI-compatible inference API |
 
 Set the base URL in any OpenAI-compatible client to your service address with `/v1` appended, and use the API key from **Get API Key**.
 
@@ -125,23 +125,23 @@ Set the base URL in any OpenAI-compatible client to your service address with `/
 
 ## Actions (StartOS UI)
 
-| Action | Inputs | Effect |
-|--------|--------|--------|
-| **Get API Key** | none | Returns the auto-generated API key (masked, copyable). |
-| **Set Model** | preset choice _or_ custom `vllm serve` argv | Detects host hardware tier and memory, filters the preset list to compatible options, writes `serveArgs` to the store, and restarts the service. |
-| **Delete Model Cache** | HuggingFace model id (e.g. `meta-llama/Llama-3.1-8B-Instruct`) | Removes `models/models--<org>--<name>` from the cache to free disk. |
+| Action                 | Inputs                                                         | Effect                                                                                                                                           |
+| ---------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Get API Key**        | none                                                           | Returns the auto-generated API key (masked, copyable).                                                                                           |
+| **Set Model**          | preset choice _or_ custom `vllm serve` argv                    | Detects host hardware tier and memory, filters the preset list to compatible options, writes `serveArgs` to the store, and restarts the service. |
+| **Delete Model Cache** | HuggingFace model id (e.g. `meta-llama/Llama-3.1-8B-Instruct`) | Removes `models/models--<org>--<name>` from the cache to free disk.                                                                              |
 
 ### Set Model presets
 
 The preset list is filtered against detected hardware and memory at action-open time. Hardware tiers:
 
-| Tier | GPUs |
-|------|------|
+| Tier               | GPUs                                                          |
+| ------------------ | ------------------------------------------------------------- |
 | `nvidia-blackwell` | sm_120/sm_121 -- DGX Spark, RTX 50, B100/B200 (NVFP4-capable) |
-| `nvidia-hopper` | sm_90 -- H100, H200 (FP8-capable) |
-| `nvidia-older` | sm_80--sm_89 -- A100, A6000, RTX 40/30 |
-| `amd` | ROCm-capable, MI300+ class |
-| `cpu` | no GPU detected |
+| `nvidia-hopper`    | sm_90 -- H100, H200 (FP8-capable)                             |
+| `nvidia-older`     | sm_80--sm_89 -- A100, A6000, RTX 40/30                        |
+| `amd`              | ROCm-capable, MI300+ class                                    |
+| `cpu`              | no GPU detected                                               |
 
 Each preset specifies per-tier argv and a minimum memory budget (weights + ~30% for KV cache, activations, CUDA graphs, Python overhead). Quantizations:
 
@@ -194,10 +194,10 @@ On restore, the service comes back with the same API key and the same selected m
 
 ## Health Checks
 
-| Check | Method | Behavior while starting |
-|-------|--------|-------------------------|
-| `ldconfig` (oneshot) | refreshes the linker cache so Triton can find the host-injected `libcuda.so.1` (needed on some aarch64 NVIDIA images) | -- |
-| vLLM API | port 8000 listening | reports **loading** for the first 35 minutes, then **failure** |
+| Check                | Method                                                                                                                | Behavior while starting                                        |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| `ldconfig` (oneshot) | refreshes the linker cache so Triton can find the host-injected `libcuda.so.1` (needed on some aarch64 NVIDIA images) | --                                                             |
+| vLLM API             | port 8000 listening                                                                                                   | reports **loading** for the first 35 minutes, then **failure** |
 
 Once a model is selected, the API health check reports `loading` (not failure) while the weights download/compile, so a slow cold start doesn't look like a crash. If the port is still not listening **35 minutes** after the daemon starts, the check flips to a hard `failure` that tells the user to check the logs — a genuine hang or misconfiguration won't stay "loading" forever.
 
@@ -246,14 +246,14 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for build instructions and development wo
 package_id: vllm
 variants:
   nvidia:
-    image: vllm/vllm-openai          # upstream container
-    nvidia_container: true
+    image: vllm/vllm-openai # upstream container
+    nvidia_container: true # requires a -nvidia StartOS flavor; CPU fallback otherwise
     arches: [x86_64, aarch64]
     hardware: nvidia
   rocm:
-    image: vllm/vllm-openai-rocm     # upstream container
+    image: vllm/vllm-openai-rocm # upstream container
     arches: [x86_64]
-    hardware: amdgpu
+    hardware: amdgpu # discrete AMD GPU only (integrated Radeon -> cpu)
   cpu:
     image: source build (vllm/docker/Dockerfile.cpu)
     arches: [x86_64]
@@ -282,7 +282,7 @@ store_shape:
   modelSelection: object
 public_files:
   credentials.json:
-    apiKey: string          # canonical home for the API key
+    apiKey: string # canonical home for the API key
 health_check:
   api: loading until port 8000 is up (first start can take 30+ min)
 ```
