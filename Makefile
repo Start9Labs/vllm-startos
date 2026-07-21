@@ -8,7 +8,7 @@
 TARGETS := nvidia-x86 nvidia-arm rocm-x86 cpu-x86
 ARCHES := x86 arm
 
-include s9pk.mk
+include node_modules/@start9labs/start-sdk/s9pk.mk
 
 .PHONY += nvidia nvidia-x86 nvidia-arm rocm rocm-x86 cpu cpu-x86 patch-dockerfiles
 

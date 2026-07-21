@@ -14,7 +14,7 @@ export const main = sdk.setupMain(async ({ effects }) => {
     throw new Error('no apiKey in credentials.json')
   }
 
-  const vllmSub = await sdk.SubContainer.of(
+  const vllmSub = sdk.SubContainer.of(
     effects,
     { imageId: 'vllm' },
     sdk.Mounts.of().mountVolume({
