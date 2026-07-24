@@ -1,7 +1,7 @@
 import { VersionInfo } from '@start9labs/start-sdk'
 
 export const current = VersionInfo.of({
-  version: '0.23.1-rc.0:12',
+  version: '0.23.1-rc.0:13',
   releaseNotes: {
     en_US: `Advanced the pinned vLLM nightly build to upstream commit \`9e57de7\`.
 
