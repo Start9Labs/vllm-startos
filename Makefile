@@ -3,35 +3,25 @@
 # s9pk, so the release workflow's matrix fans out one runner per entry instead
 # of building a variant's arches serially on one runner. This keeps each nvidia
 # arch's CUDA image on its own runner — packing both on one runner exhausted its
-# disk. cpu is x86_64-only: an emulated aarch64 source build is impractical
-# (multi-hour), and upstream's default cpu build stage is amd64-only zentorch.
+# disk. rocm and cpu are amd64-only (upstream publishes no arm64 ROCm image, and
+# arm64 CPU inference is impractically slow).
 TARGETS := nvidia-x86 nvidia-arm rocm-x86 cpu-x86
 ARCHES := x86 arm
 
 include node_modules/@start9labs/start-sdk/s9pk.mk
 
-.PHONY += nvidia nvidia-x86 nvidia-arm rocm rocm-x86 cpu cpu-x86 patch-dockerfiles
+.PHONY += nvidia nvidia-x86 nvidia-arm rocm rocm-x86 cpu cpu-x86
 
 # Aggregate variant targets so `make nvidia` still builds every arch locally;
-# the matrix uses the leaf targets in TARGETS directly. rocm uses vLLM's prebuilt
-# ROCm image (amd64 only) and cpu is built x86_64-only, so each has one arch.
+# the matrix uses the leaf targets in TARGETS directly. rocm and cpu each pack a
+# single amd64 image, so each has one arch.
 nvidia: nvidia-x86 nvidia-arm
 rocm: rocm-x86
 cpu: cpu-x86
 
-# nvidia and rocm use vLLM's prebuilt images, so a leaf just packs that arch.
+# All three variants pack vLLM's official prebuilt images, so a leaf just packs
+# that arch. cpu is the default/unsuffixed variant: VARIANT stays unset so the
+# manifest defaults to 'cpu' and BASE_NAME stays 'vllm' (artifact name unchanged).
 nvidia-%:; VARIANT=nvidia $(MAKE) $*
 rocm-%:; VARIANT=rocm $(MAKE) $*
-
-# cpu is the only source-built variant, and the default/unsuffixed one: VARIANT
-# stays unset so the manifest defaults to 'cpu' and BASE_NAME stays 'vllm'
-# (artifact name unchanged). Its upstream Dockerfile derives the version from git,
-# which fails because vllm/ is a submodule with no usable .git in the build
-# context; patch-dockerfiles writes a version-injected copy to .dockerfiles/
-# (scripts/patch-dockerfiles.sh). It's a prerequisite (not in-recipe) so it
-# finishes before the sub-make, even under `make -j`.
-cpu-%: patch-dockerfiles
-	$(MAKE) $*
-
-patch-dockerfiles:
-	./scripts/patch-dockerfiles.sh
+cpu-%:; $(MAKE) $*

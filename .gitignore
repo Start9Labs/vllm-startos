@@ -1,5 +1,4 @@
 *.s9pk
-.dockerfiles/
 startos/*.js
 node_modules/
 .DS_Store

@@ -11,7 +11,7 @@ Work this package's `TODO.md` from top to bottom. Keep `README.md` (architecture
 ## This repo
 
 - **Package id is `vllm`.** Exposes a single OpenAI-compatible `api` interface (host `api-multi`, port 8000) and publishes the API key as `credentials.json` on the `public` volume so dependent services can mount it read-only.
-- **Variant package.** One codebase builds three variants selected by the `VARIANT` env var in the `Makefile`: `nvidia` and `rocm` pack vLLM's official prebuilt images at a pinned nightly commit, while `cpu` (the default/unsuffixed variant) is source-built from the bundled `vllm/` submodule via a version-injected `Dockerfile.cpu` (`scripts/patch-dockerfiles.sh`). The Makefile's `TARGETS`/`ARCHES`/`VARIANT` overrides must precede the `s9pk.mk` include. On a version bump, keep `NIGHTLY_SHA`, `UPSTREAM_VLLM_VERSION` (manifest), the submodule tag, and `versions/current.ts` in lockstep — see `UPDATING.md`.
+- **Variant package.** One codebase builds three variants selected by the `VARIANT` env var in the `Makefile`: `nvidia`, `rocm`, and `cpu` (the default/unsuffixed variant) each pack one of vLLM's official prebuilt **release** images (`vllm/vllm-openai`, `-rocm`, `-cpu`) at a pinned version tag. The Makefile's `TARGETS`/`ARCHES`/`VARIANT` overrides must precede the `s9pk.mk` include. On a version bump, keep `VLLM_VERSION` (manifest) and `versions/current.ts` in lockstep — see `UPDATING.md`.
 
 ## Inspecting a running install
 

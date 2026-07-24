@@ -1,5 +1,4 @@
 import { setupManifest } from '@start9labs/start-sdk'
-import { cpus, totalmem } from 'node:os'
 import { long, short } from './i18n'
 
 const variant = process.env.VARIANT || 'cpu'
@@ -7,52 +6,28 @@ const variant = process.env.VARIANT || 'cpu'
 type Mutable<T> = { -readonly [K in keyof T]: Mutable<T[K]> }
 const mutable = <T>(value: T): Mutable<T> => value as Mutable<T>
 
-// Pinned upstream vLLM nightly commit. nvidia and rocm both run vLLM's official
-// prebuilt images at this commit, so they stay in lockstep — bump it on a vllm
-// update (and bump the submodule + versions to match). See UPDATING.md.
-const NIGHTLY_SHA = '9e57de7197f234f9d9187715d96e07e007048c0f'
-
-// Upstream vLLM version of the bundled submodule, fed to the cpu source build as
-// SETUPTOOLS_SCM_PRETEND_VERSION (the submodule's .git isn't usable in the Docker
-// build context, so setuptools-scm can't derive it). MUST match the upstream half
-// of the package version in versions/current.ts and the bundled submodule's tag.
-// See UPDATING.md.
-const UPSTREAM_VLLM_VERSION = '0.23.1rc0'
-
-// Parallelism for the cpu source build (gcc): cap at available cores, budgeting
-// ~3 GB RAM per compile job.
-const maxJobs = Math.max(
-  1,
-  Math.min(cpus().length, Math.floor(totalmem() / (1024 * 1024 * 1024) / 3)),
-)
+// Pinned upstream vLLM release. All three variants pack vLLM's official prebuilt
+// images at this tag, so they stay in lockstep — bump it on a vllm update (and
+// bump versions/current.ts to match). Release tags are immutable and retained by
+// Docker Hub indefinitely, unlike the ephemeral `nightly-<sha>` tags they replaced
+// (which get garbage-collected, breaking rebuilds). See UPDATING.md.
+const VLLM_VERSION = 'v0.25.1'
 
 const imageConfigs = {
   nvidia: {
-    source: { dockerTag: `vllm/vllm-openai:nightly-${NIGHTLY_SHA}` },
+    source: { dockerTag: `vllm/vllm-openai:${VLLM_VERSION}` },
     arch: ['x86_64', 'aarch64'],
     nvidiaContainer: true,
   },
-  // vLLM's official ROCm serve image at the same commit as nvidia (amd64 only).
+  // vLLM's official ROCm serve image (amd64 only).
   rocm: {
-    source: { dockerTag: `vllm/vllm-openai-rocm:nightly-${NIGHTLY_SHA}` },
+    source: { dockerTag: `vllm/vllm-openai-rocm:${VLLM_VERSION}` },
     arch: ['x86_64'],
   },
-  // No prebuilt cpu image exists at this nightly commit, so cpu is built from the
-  // submodule via a version-injected copy of upstream's Dockerfile.cpu
-  // (scripts/patch-dockerfiles.sh, run by the Makefile before packing).
+  // vLLM's official CPU serve image. amd64 only, matching the arch scope of the
+  // prior source-built cpu variant (arm64 CPU inference is impractically slow).
   cpu: {
-    source: {
-      dockerBuild: {
-        workdir: './vllm',
-        dockerfile: './.dockerfiles/Dockerfile.cpu',
-        buildArgs: {
-          max_jobs: String(maxJobs),
-          VLLM_VERSION: UPSTREAM_VLLM_VERSION,
-        },
-      },
-    },
-    // x86_64 only: an emulated aarch64 source build is impractical (multi-hour
-    // under QEMU), and upstream's default cpu build stage is amd64-only zentorch.
+    source: { dockerTag: `vllm/vllm-openai-cpu:${VLLM_VERSION}` },
     arch: ['x86_64'],
   },
 } as const
