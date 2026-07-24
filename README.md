@@ -41,9 +41,9 @@ vLLM ships as three variants, each a separate `.s9pk`. The variant is chosen at 
 | -------- | ------------------------------------------------------- | --------------- | ---------------------------------------- |
 | `nvidia` | Upstream container `vllm/vllm-openai` (unmodified)      | x86_64, aarch64 | NVIDIA Container Toolkit                 |
 | `rocm`   | Upstream container `vllm/vllm-openai-rocm` (unmodified) | x86_64          | Discrete AMD GPU (`amdgpu` driver, ROCm) |
-| `cpu`    | Source build via `vllm/docker/Dockerfile.cpu`           | x86_64, aarch64 | None (CPU inference)                     |
+| `cpu`    | Upstream container `vllm/vllm-openai-cpu` (unmodified)  | x86_64          | None (CPU inference)                     |
 
-`nvidia` and `rocm` use vLLM's prebuilt nightly images pinned to the same commit; `cpu` has no prebuilt image at that commit and is built from the bundled `vllm/` submodule.
+All three variants use vLLM's official prebuilt **release** images (`vllm/vllm-openai`, `-rocm`, `-cpu`), pinned to the same version tag. Release tags are retained by Docker Hub indefinitely, unlike the ephemeral `nightly-<sha>` tags previously used — so rebuilds stay reproducible.
 
 The `nvidia` variant declares `nvidiaContainer: true` and a matching `nvidia` GPU hardware requirement, so it is offered only when StartOS is installed from a `-nvidia` platform flavor (`x86_64-nvidia` / `aarch64-nvidia`) — those install images bundle the NVIDIA driver and container toolkit. On the standard or `-nonfree` flavors the NVIDIA driver is absent, so the card's `nvidia` driver never appears, the `nvidia` variant isn't selected, and the host gets `cpu` even with an NVIDIA card present. The `rocm` variant declares an `amdgpu` hardware requirement narrowed to **discrete** AMD GPUs by product name (Navi / Radeon RX / Instinct) — integrated Radeon graphics (e.g. the Radeon 680M in Ryzen APUs), where ROCm can't run, don't match and fall back to `cpu`. `cpu` declares no hardware requirement. Each accelerator variant carries its own distinct hardware requirement so StartOS offers the right one per host (and so all three can publish under a single version).
 
@@ -255,7 +255,7 @@ variants:
     arches: [x86_64]
     hardware: amdgpu # discrete AMD GPU only (integrated Radeon -> cpu)
   cpu:
-    image: source build (vllm/docker/Dockerfile.cpu)
+    image: vllm/vllm-openai-cpu # upstream container
     arches: [x86_64]
 volumes:
   main: /data
