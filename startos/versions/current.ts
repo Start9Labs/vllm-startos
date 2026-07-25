@@ -1,7 +1,7 @@
 import { VersionInfo } from '@start9labs/start-sdk'
 
 export const current = VersionInfo.of({
-  version: '0.25.1:0',
+  version: '0.25.1:1',
   releaseNotes: {
     en_US: `Updates vLLM to **0.25.1**, the latest stable upstream release (from the previous 0.23.1rc0 pre-release build).
 
