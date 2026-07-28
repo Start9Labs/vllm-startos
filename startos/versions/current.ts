@@ -1,23 +1,53 @@
 import { VersionInfo } from '@start9labs/start-sdk'
 
 export const current = VersionInfo.of({
-  version: '0.25.1:1',
+  version: '0.26.0:0',
   releaseNotes: {
-    en_US: `Updates vLLM to **0.25.1**, the latest stable upstream release (from the previous 0.23.1rc0 pre-release build).
+    en_US: `Updates vLLM to **0.26.0**.
 
-- All three variants — NVIDIA (CUDA), AMD (ROCm) and CPU — now run vLLM's official prebuilt **release** images. This replaces the earlier ephemeral nightly-build pins (which Docker Hub periodically deletes, breaking package rebuilds) and the from-source CPU build, so the package builds and updates reliably going forward.`,
-    es_ES: `Actualiza vLLM a **0.25.1**, la última versión estable oficial (desde la anterior compilación preliminar 0.23.1rc0).
+- Security: removes pickle deserialization from the disk cache, closes a race that bypassed an earlier CVE fix, and hardens the API server against unbounded prompt lists and slow regular-expression compilation.
+- Stability: a failed grammar compilation no longer crashes the engine.
+- Broader model support via Transformers 5.13.0, plus faster inference on both NVIDIA and AMD hardware.
+- The OpenAI-compatible API gains \`bad_words\` on \`/v1/completions\` and an \`include_reasoning\` option.
+- Upstream removed the TeleChat, Persimmon and Fuyu models; none are offered as presets in this package.
 
-- Las tres variantes —NVIDIA (CUDA), AMD (ROCm) y CPU— ahora ejecutan las imágenes oficiales precompiladas de **lanzamiento** de vLLM. Esto reemplaza los anclajes anteriores a compilaciones nocturnas efímeras (que Docker Hub elimina periódicamente, rompiendo las recompilaciones del paquete) y la compilación de CPU desde el código fuente, de modo que el paquete se compila y actualiza de forma fiable en adelante.`,
-    de_DE: `Aktualisiert vLLM auf **0.25.1**, die neueste stabile Upstream-Version (vom vorherigen Vorabversions-Build 0.23.1rc0).
+Full upstream release notes: https://github.com/vllm-project/vllm/releases/tag/v0.26.0`,
+    es_ES: `Actualiza vLLM a **0.26.0**.
 
-- Alle drei Varianten – NVIDIA (CUDA), AMD (ROCm) und CPU – nutzen jetzt vLLMs offizielle vorgefertigte **Release**-Images. Dies ersetzt die früheren Verweise auf kurzlebige Nightly-Builds (die Docker Hub regelmäßig löscht, was Neubauten des Pakets zerstört) sowie den CPU-Build aus dem Quellcode, sodass das Paket künftig zuverlässig gebaut und aktualisiert wird.`,
-    pl_PL: `Aktualizuje vLLM do **0.25.1**, najnowszego stabilnego wydania upstream (z poprzedniej kompilacji przedpremierowej 0.23.1rc0).
+- Seguridad: elimina la deserialización pickle de la caché en disco, cierra una condición de carrera que eludía una corrección de CVE anterior y refuerza el servidor API frente a listas de prompts sin límite y a la compilación lenta de expresiones regulares.
+- Estabilidad: un fallo al compilar una gramática ya no bloquea el motor.
+- Mayor compatibilidad de modelos gracias a Transformers 5.13.0, además de una inferencia más rápida en hardware NVIDIA y AMD.
+- La API compatible con OpenAI incorpora \`bad_words\` en \`/v1/completions\` y una opción \`include_reasoning\`.
+- Upstream eliminó los modelos TeleChat, Persimmon y Fuyu; ninguno se ofrece como preajuste en este paquete.
 
-- Wszystkie trzy warianty — NVIDIA (CUDA), AMD (ROCm) i CPU — korzystają teraz z oficjalnych, gotowych obrazów **wydań** vLLM. Zastępuje to wcześniejsze przypięcia do efemerycznych kompilacji nocnych (które Docker Hub okresowo usuwa, psując ponowne kompilacje pakietu) oraz kompilację CPU ze źródeł, dzięki czemu pakiet buduje się i aktualizuje niezawodnie w przyszłości.`,
-    fr_FR: `Met à jour vLLM vers **0.25.1**, la dernière version stable en amont (depuis la précédente préversion 0.23.1rc0).
+Notas de la versión completas: https://github.com/vllm-project/vllm/releases/tag/v0.26.0`,
+    de_DE: `Aktualisiert vLLM auf **0.26.0**.
 
-- Les trois variantes — NVIDIA (CUDA), AMD (ROCm) et CPU — utilisent désormais les images **de version** précompilées officielles de vLLM. Cela remplace les anciens épinglages sur des versions nightly éphémères (que Docker Hub supprime périodiquement, cassant les reconstructions du paquet) et la compilation CPU depuis les sources, afin que le paquet se construise et se mette à jour de manière fiable à l'avenir.`,
+- Sicherheit: entfernt die Pickle-Deserialisierung aus dem Festplatten-Cache, schließt eine Race Condition, die eine frühere CVE-Behebung umging, und härtet den API-Server gegen unbegrenzte Prompt-Listen und langsame Kompilierung regulärer Ausdrücke ab.
+- Stabilität: eine fehlgeschlagene Grammatik-Kompilierung bringt die Engine nicht mehr zum Absturz.
+- Breitere Modellunterstützung durch Transformers 5.13.0 sowie schnellere Inferenz auf NVIDIA- und AMD-Hardware.
+- Die OpenAI-kompatible API erhält \`bad_words\` unter \`/v1/completions\` sowie eine \`include_reasoning\`-Option.
+- Upstream hat die Modelle TeleChat, Persimmon und Fuyu entfernt; keines davon wird in diesem Paket als Voreinstellung angeboten.
+
+Vollständige Upstream-Versionshinweise: https://github.com/vllm-project/vllm/releases/tag/v0.26.0`,
+    pl_PL: `Aktualizuje vLLM do **0.26.0**.
+
+- Bezpieczeństwo: usuwa deserializację pickle z pamięci podręcznej na dysku, likwiduje wyścig omijający wcześniejszą poprawkę CVE oraz zabezpiecza serwer API przed nieograniczonymi listami promptów i powolną kompilacją wyrażeń regularnych.
+- Stabilność: nieudana kompilacja gramatyki nie powoduje już awarii silnika.
+- Szersza obsługa modeli dzięki Transformers 5.13.0 oraz szybsze wnioskowanie na sprzęcie NVIDIA i AMD.
+- API zgodne z OpenAI zyskuje \`bad_words\` w \`/v1/completions\` i opcję \`include_reasoning\`.
+- Upstream usunął modele TeleChat, Persimmon i Fuyu; żaden z nich nie jest oferowany jako gotowa konfiguracja w tym pakiecie.
+
+Pełne informacje o wydaniu: https://github.com/vllm-project/vllm/releases/tag/v0.26.0`,
+    fr_FR: `Met à jour vLLM vers **0.26.0**.
+
+- Sécurité : supprime la désérialisation pickle du cache disque, corrige une situation de compétition qui contournait un correctif CVE antérieur et renforce le serveur API contre les listes d'invites non bornées et la compilation lente d'expressions régulières.
+- Stabilité : l'échec de la compilation d'une grammaire ne fait plus planter le moteur.
+- Prise en charge de modèles élargie grâce à Transformers 5.13.0, ainsi qu'une inférence plus rapide sur matériel NVIDIA et AMD.
+- L'API compatible OpenAI gagne \`bad_words\` sur \`/v1/completions\` et une option \`include_reasoning\`.
+- En amont, les modèles TeleChat, Persimmon et Fuyu ont été supprimés ; aucun n'est proposé comme préréglage dans ce paquet.
+
+Notes de version complètes : https://github.com/vllm-project/vllm/releases/tag/v0.26.0`,
   },
   migrations: {
     up: async ({ effects }) => {},
