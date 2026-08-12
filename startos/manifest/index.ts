@@ -11,7 +11,7 @@ const mutable = <T>(value: T): Mutable<T> => value as Mutable<T>
 // bump versions/current.ts to match). Release tags are immutable and retained by
 // Docker Hub indefinitely, unlike the ephemeral `nightly-<sha>` tags they replaced
 // (which get garbage-collected, breaking rebuilds). See UPDATING.md.
-const VLLM_VERSION = 'v0.26.0'
+const VLLM_VERSION = 'v0.27.1'
 
 const imageConfigs = {
   nvidia: {
