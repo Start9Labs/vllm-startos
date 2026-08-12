@@ -1,53 +1,58 @@
 import { VersionInfo } from '@start9labs/start-sdk'
 
 export const current = VersionInfo.of({
-  version: '0.26.0:0',
+  version: '0.27.1:0',
   releaseNotes: {
-    en_US: `Updates vLLM to **0.26.0**.
+    en_US: `Updates vLLM to **0.27.1**.
 
-- Security: removes pickle deserialization from the disk cache, closes a race that bypassed an earlier CVE fix, and hardens the API server against unbounded prompt lists and slow regular-expression compilation.
-- Stability: a failed grammar compilation no longer crashes the engine.
-- Broader model support via Transformers 5.13.0, plus faster inference on both NVIDIA and AMD hardware.
-- The OpenAI-compatible API gains \`bad_words\` on \`/v1/completions\` and an \`include_reasoning\` option.
-- Upstream removed the TeleChat, Persimmon and Fuyu models; none are offered as presets in this package.
+- New model support: Kimi K3, Qwen3.5 (dense and MoE), K-EXAONE-2.0, VaultGemma and jina-embeddings-v5, on top of PyTorch 2.13 and Transformers 5.14.1.
+- Faster first request: kernels are now warmed up at startup, removing the compilation stall that used to hit the first prompt.
+- The OpenAI-compatible API gains Cohere chat v2 support, a per-request \`stream_interval\` option and clearer request errors; startup logging is much quieter.
+- AMD: ROCm adds gfx1250 support along with several accuracy and performance fixes.
+- Upstream removed the Plamo2 and Ouro models and the \`--max-num-partial-prefills\` / \`--max-long-partial-prefills\` flags. Neither model is offered as a preset here, but drop those flags if you set them as custom serve arguments.
+- 0.27.1 is a patch release adding support for quantized DSpark Markov heads.
 
-Full upstream release notes: https://github.com/vllm-project/vllm/releases/tag/v0.26.0`,
-    es_ES: `Actualiza vLLM a **0.26.0**.
+Full upstream release notes: https://github.com/vllm-project/vllm/releases/tag/v0.27.1`,
+    es_ES: `Actualiza vLLM a **0.27.1**.
 
-- Seguridad: elimina la deserialización pickle de la caché en disco, cierra una condición de carrera que eludía una corrección de CVE anterior y refuerza el servidor API frente a listas de prompts sin límite y a la compilación lenta de expresiones regulares.
-- Estabilidad: un fallo al compilar una gramática ya no bloquea el motor.
-- Mayor compatibilidad de modelos gracias a Transformers 5.13.0, además de una inferencia más rápida en hardware NVIDIA y AMD.
-- La API compatible con OpenAI incorpora \`bad_words\` en \`/v1/completions\` y una opción \`include_reasoning\`.
-- Upstream eliminó los modelos TeleChat, Persimmon y Fuyu; ninguno se ofrece como preajuste en este paquete.
+- Nuevos modelos compatibles: Kimi K3, Qwen3.5 (denso y MoE), K-EXAONE-2.0, VaultGemma y jina-embeddings-v5, sobre PyTorch 2.13 y Transformers 5.14.1.
+- Primera petición más rápida: los kernels se precalientan al arrancar, eliminando la pausa de compilación que afectaba al primer prompt.
+- La API compatible con OpenAI incorpora soporte para Cohere chat v2, una opción \`stream_interval\` por petición y errores de petición más claros; el registro de arranque es mucho menos ruidoso.
+- AMD: ROCm añade soporte para gfx1250 junto con varias correcciones de precisión y rendimiento.
+- Upstream eliminó los modelos Plamo2 y Ouro y las opciones \`--max-num-partial-prefills\` / \`--max-long-partial-prefills\`. Ninguno de esos modelos se ofrece como preajuste aquí, pero elimina esas opciones si las habías añadido como argumentos personalizados.
+- 0.27.1 es una versión de mantenimiento que añade soporte para cabezales Markov DSpark cuantizados.
 
-Notas de la versión completas: https://github.com/vllm-project/vllm/releases/tag/v0.26.0`,
-    de_DE: `Aktualisiert vLLM auf **0.26.0**.
+Notas de la versión completas: https://github.com/vllm-project/vllm/releases/tag/v0.27.1`,
+    de_DE: `Aktualisiert vLLM auf **0.27.1**.
 
-- Sicherheit: entfernt die Pickle-Deserialisierung aus dem Festplatten-Cache, schließt eine Race Condition, die eine frühere CVE-Behebung umging, und härtet den API-Server gegen unbegrenzte Prompt-Listen und langsame Kompilierung regulärer Ausdrücke ab.
-- Stabilität: eine fehlgeschlagene Grammatik-Kompilierung bringt die Engine nicht mehr zum Absturz.
-- Breitere Modellunterstützung durch Transformers 5.13.0 sowie schnellere Inferenz auf NVIDIA- und AMD-Hardware.
-- Die OpenAI-kompatible API erhält \`bad_words\` unter \`/v1/completions\` sowie eine \`include_reasoning\`-Option.
-- Upstream hat die Modelle TeleChat, Persimmon und Fuyu entfernt; keines davon wird in diesem Paket als Voreinstellung angeboten.
+- Neue Modellunterstützung: Kimi K3, Qwen3.5 (dicht und MoE), K-EXAONE-2.0, VaultGemma und jina-embeddings-v5, auf Basis von PyTorch 2.13 und Transformers 5.14.1.
+- Schnellere erste Anfrage: Kernel werden beim Start vorgewärmt, wodurch die Kompilierungspause beim ersten Prompt entfällt.
+- Die OpenAI-kompatible API erhält Unterstützung für Cohere Chat v2, eine \`stream_interval\`-Option pro Anfrage und verständlichere Anfragefehler; die Startprotokollierung ist deutlich ruhiger.
+- AMD: ROCm unterstützt nun gfx1250 und bringt mehrere Genauigkeits- und Leistungskorrekturen.
+- Upstream hat die Modelle Plamo2 und Ouro sowie die Optionen \`--max-num-partial-prefills\` / \`--max-long-partial-prefills\` entfernt. Keines dieser Modelle wird hier als Voreinstellung angeboten; entfernen Sie diese Optionen jedoch, falls Sie sie als eigene Serve-Argumente gesetzt haben.
+- 0.27.1 ist eine Patch-Version, die Unterstützung für quantisierte DSpark-Markov-Köpfe ergänzt.
 
-Vollständige Upstream-Versionshinweise: https://github.com/vllm-project/vllm/releases/tag/v0.26.0`,
-    pl_PL: `Aktualizuje vLLM do **0.26.0**.
+Vollständige Upstream-Versionshinweise: https://github.com/vllm-project/vllm/releases/tag/v0.27.1`,
+    pl_PL: `Aktualizuje vLLM do **0.27.1**.
 
-- Bezpieczeństwo: usuwa deserializację pickle z pamięci podręcznej na dysku, likwiduje wyścig omijający wcześniejszą poprawkę CVE oraz zabezpiecza serwer API przed nieograniczonymi listami promptów i powolną kompilacją wyrażeń regularnych.
-- Stabilność: nieudana kompilacja gramatyki nie powoduje już awarii silnika.
-- Szersza obsługa modeli dzięki Transformers 5.13.0 oraz szybsze wnioskowanie na sprzęcie NVIDIA i AMD.
-- API zgodne z OpenAI zyskuje \`bad_words\` w \`/v1/completions\` i opcję \`include_reasoning\`.
-- Upstream usunął modele TeleChat, Persimmon i Fuyu; żaden z nich nie jest oferowany jako gotowa konfiguracja w tym pakiecie.
+- Obsługa nowych modeli: Kimi K3, Qwen3.5 (gęste i MoE), K-EXAONE-2.0, VaultGemma oraz jina-embeddings-v5, w oparciu o PyTorch 2.13 i Transformers 5.14.1.
+- Szybsze pierwsze zapytanie: jądra obliczeniowe są rozgrzewane przy starcie, co eliminuje przestój na kompilację przy pierwszym prompcie.
+- API zgodne z OpenAI zyskuje obsługę Cohere chat v2, opcję \`stream_interval\` na zapytanie oraz czytelniejsze komunikaty o błędach; logi startowe są znacznie mniej hałaśliwe.
+- AMD: ROCm dodaje obsługę gfx1250 oraz kilka poprawek dokładności i wydajności.
+- Upstream usunął modele Plamo2 i Ouro oraz opcje \`--max-num-partial-prefills\` / \`--max-long-partial-prefills\`. Żaden z tych modeli nie jest tu oferowany jako gotowa konfiguracja, ale usuń te opcje, jeśli ustawiono je jako własne argumenty uruchomieniowe.
+- 0.27.1 to wydanie poprawkowe dodające obsługę skwantyzowanych głowic Markowa DSpark.
 
-Pełne informacje o wydaniu: https://github.com/vllm-project/vllm/releases/tag/v0.26.0`,
-    fr_FR: `Met à jour vLLM vers **0.26.0**.
+Pełne informacje o wydaniu: https://github.com/vllm-project/vllm/releases/tag/v0.27.1`,
+    fr_FR: `Met à jour vLLM vers **0.27.1**.
 
-- Sécurité : supprime la désérialisation pickle du cache disque, corrige une situation de compétition qui contournait un correctif CVE antérieur et renforce le serveur API contre les listes d'invites non bornées et la compilation lente d'expressions régulières.
-- Stabilité : l'échec de la compilation d'une grammaire ne fait plus planter le moteur.
-- Prise en charge de modèles élargie grâce à Transformers 5.13.0, ainsi qu'une inférence plus rapide sur matériel NVIDIA et AMD.
-- L'API compatible OpenAI gagne \`bad_words\` sur \`/v1/completions\` et une option \`include_reasoning\`.
-- En amont, les modèles TeleChat, Persimmon et Fuyu ont été supprimés ; aucun n'est proposé comme préréglage dans ce paquet.
+- Nouveaux modèles pris en charge : Kimi K3, Qwen3.5 (dense et MoE), K-EXAONE-2.0, VaultGemma et jina-embeddings-v5, sur la base de PyTorch 2.13 et Transformers 5.14.1.
+- Première requête plus rapide : les noyaux sont préchauffés au démarrage, ce qui supprime la pause de compilation qui affectait la première invite.
+- L'API compatible OpenAI gagne la prise en charge de Cohere chat v2, une option \`stream_interval\` par requête et des erreurs de requête plus claires ; les journaux de démarrage sont bien moins bavards.
+- AMD : ROCm ajoute la prise en charge de gfx1250 ainsi que plusieurs correctifs de précision et de performance.
+- En amont, les modèles Plamo2 et Ouro ainsi que les options \`--max-num-partial-prefills\` / \`--max-long-partial-prefills\` ont été supprimés. Aucun de ces modèles n'est proposé comme préréglage ici, mais retirez ces options si vous les aviez ajoutées comme arguments personnalisés.
+- 0.27.1 est une version corrective qui ajoute la prise en charge des têtes de Markov DSpark quantifiées.
 
-Notes de version complètes : https://github.com/vllm-project/vllm/releases/tag/v0.26.0`,
+Notes de version complètes : https://github.com/vllm-project/vllm/releases/tag/v0.27.1`,
   },
   migrations: {
     up: async ({ effects }) => {},
