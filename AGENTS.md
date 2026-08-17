@@ -6,13 +6,11 @@ Develop it inside a StartOS packaging workspace created by `start-cli s9pk init-
 which provides the packaging guide and agent context one level up. If you're reading this in a
 bare clone with no workspace, the full guide is at <https://docs.start9.com/packaging>.
 
-Work this package's `TODO.md` from top to bottom. Keep `README.md` (architecture, for developers and LLMs) and `instructions.md` (end-user docs) in sync with your changes.
+Work this package's `TODO.md` from top to bottom. Keep `README.md` (technical reference for an AI support or administering agent) and `instructions.md` (end-user docs) in sync with your changes.
 
 ## This repo
 
-- **Package id is `vllm`.** Exposes a single OpenAI-compatible `api` interface (host `api-multi`, port 8000) and publishes the API key as `credentials.json` on the `public` volume so dependent services can mount it read-only.
-- **Variant package.** One codebase builds three variants selected by the `VARIANT` env var in the `Makefile`: `nvidia`, `rocm`, and `cpu` (the default/unsuffixed variant) each pack one of vLLM's official prebuilt **release** images (`vllm/vllm-openai`, `-rocm`, `-cpu`) at a pinned version tag. The Makefile's `TARGETS`/`ARCHES`/`VARIANT` overrides must precede the `s9pk.mk` include. On a version bump, keep `VLLM_VERSION` (manifest) and `versions/current.ts` in lockstep — see `UPDATING.md`.
-
-## Inspecting a running install
-
-To run a command inside the service's container (read its generated config, grep app logs), use `start-cli package attach vllm -n vllm -- <cmd>`. Select the subcontainer by **name** with `-n` (the name passed to `SubContainer.of` in `main.ts` — here `vllm-sub`) or by image with `-i`. Note: `-s/--subcontainer` matches the internal **Guid**, not the name, so passing a name to `-s` fails with "no matching subcontainers".
+- **The AMD GPU match must stay a positive allowlist.** StartOS's regex engine has no lookahead, so an iGPU exclusion cannot be expressed; the pattern names discrete families instead. Widening it to plain `Radeon` puts `rocm` on Ryzen APU graphics, where ROCm is unreliable.
+- **Don't cache a `cpu`/`0GB` hardware detection.** That result is the "everything failed" sentinel — caching it leaves every preset disabled in the Set Model form for the life of the process, even after a transient probe failure clears.
+- **The `ldconfig` oneshot is required on aarch64 NVIDIA.** The container toolkit mounts the host driver libs outside the cached search paths on some images, and Triton cannot find `libcuda.so.1` without the refresh.
+- **`credentials.json` lives on the `public` volume so dependents can mount it read-only.** Moving it into `main` breaks that contract — Open WebUI reads the key from there.
