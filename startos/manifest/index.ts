@@ -72,7 +72,6 @@ export const manifest = setupManifest({
   upstreamRepo: 'https://github.com/vllm-project/vllm',
   marketingUrl: 'https://docs.vllm.ai/',
   donationUrl: null,
-  docsUrls: ['https://docs.vllm.ai/'],
   description: { short, long },
   volumes: ['main', 'public'],
   images: {
