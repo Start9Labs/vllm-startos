@@ -95,7 +95,9 @@ One interface: vLLM's OpenAI-compatible API.
 
 The port is bound on the `api-multi` MultiHost and is not masked.
 
-**Unlike upstream's default, the API requires a key.** It is passed to `vllm serve` at start, so every request must present it — and it is the same key published on the `public` volume for dependent services to read.
+**Unlike upstream's default, the inference API requires a key.** It is passed to `vllm serve` at start, and it is the same key published on the `public` volume for dependent services to read.
+
+**The key does not cover the whole port.** vLLM authenticates the `/v1`, `/v2` and `/inference` prefixes only. Everything else the server exposes on port 8000 answers without a key, including `/invocations`, which runs the same inference as `/v1/chat/completions`, and `/pause`, which stops the engine serving. Treat the interface address as the boundary: give it out only to clients you would trust with the key, and read upstream's [security notes](https://docs.vllm.ai/en/latest/usage/security.html#api-key-authentication-limitations) for the full endpoint list.
 
 ## Installation and First-Run Flow
 
@@ -131,7 +133,8 @@ Displays the API key.
 Removes a downloaded model's files from the cache.
 
 - **When to run it:** to reclaim disk space from a model you no longer serve.
-- **Cost:** seconds.
+- **The form lists what is actually cached.** It reads the HuggingFace cache directories on the `main` volume — `models/`, which the daemon sees as `/data/models` — and offers each one labelled with its size on disk, so there is nothing to type and no way to name a model that isn't there. With an empty cache the field is disabled.
+- **Cost:** seconds. The form walks the cache to size each model before it opens.
 - **This is permanent.** The model has to be downloaded again if you select it later.
 - **It does not change the selection**, so deleting the model currently being served leaves vLLM pointing at files that are gone.
 
@@ -176,7 +179,8 @@ Both volumes are copied wholesale — `sdk.Backups.ofVolumes('main', 'public')`.
 5. **Custom `vllm serve` arguments are not validated** against your hardware.
 6. **Deleting a cached model does not clear the selection.**
 7. **The API key is on a volume other services can read.** That is deliberate, and it means any package granted that mount can use your inference endpoint.
-8. **First start after selecting a model can take over half an hour**, and the health check will keep saying `loading` for up to 35 minutes before it treats that as a failure.
+8. **The API key protects the `/v1`, `/v2` and `/inference` prefixes only.** Other endpoints on the same port, `/invocations` and `/pause` among them, answer unauthenticated.
+9. **First start after selecting a model can take over half an hour**, and the health check will keep saying `loading` for up to 35 minutes before it treats that as a failure.
 
 ---
 
@@ -202,7 +206,7 @@ startos_managed_env_vars:
   - HF_HUB_VERBOSITY
 dependencies: []
 interfaces:
-  api: { type: api, port: 8000 } # requires the generated API key
+  api: { type: api, port: 8000 } # /v1, /v2, /inference require the generated API key; other paths do not
 actions:
   - get-api-credentials
   - set-model

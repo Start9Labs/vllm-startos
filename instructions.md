@@ -10,7 +10,7 @@ vLLM does not serve anything until you choose a model. Until you run the **Set M
 
 - An **OpenAI-compatible API** at the **vLLM API Server** interface (port 8000), usable by any OpenAI client library or app.
 - A managed **model cache** on the service's data volume, so weights you download persist across restarts and are included in backups.
-- An **API key**, generated for you automatically, that protects the API.
+- An **API key**, generated for you automatically, that protects the inference endpoints.
 
 ## Getting set up
 
@@ -31,8 +31,9 @@ Point any OpenAI-compatible client at the **vLLM API Server** interface address 
 
 - **Set Model** — choose which model to serve, from a hardware-filtered preset list or custom arguments. Restarts the service.
 - **Get API Key** — reveal the API key clients use to authenticate.
-- **Delete Model Cache** — remove a downloaded model (by its HuggingFace id, e.g. `meta-llama/Llama-3.1-8B-Instruct`) to free disk space.
+- **Delete Model Cache** — pick one of the models already downloaded, listed with its size on disk, and remove it to free space.
 
 ## Limitations
 
+- The API key covers the `/v1`, `/v2` and `/inference` paths. Other paths vLLM serves on the same port answer without it, among them `/invocations`, which runs inference just as `/v1/chat/completions` does, and `/pause`, which stops the engine serving. Share the interface address only with clients you would give the key to.
 - The **Custom** model option splits your input on whitespace, so arguments whose values contain spaces (such as JSON-valued flags) won't survive. Use a preset when you need those.
