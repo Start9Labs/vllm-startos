@@ -75,11 +75,11 @@ Two models, and the split between them is the interesting part.
 | `store.json`       | `main`   | JSON   | Yes — `FileHelper.json` | The Set Model action |
 | `credentials.json` | `public` | JSON   | Yes — `FileHelper.json` | Init                 |
 
-`store.json` holds the resolved `vllm serve` arguments and the preset selection behind them. `credentials.json` holds the API key alone.
+`store.json` holds the resolved `vllm serve` arguments, the environment variables to run them under, and the preset selection behind both. `credentials.json` holds the API key alone.
 
 **The API key regenerates whenever it is missing.** Init reads it reactively and writes a new one if it is absent — so deleting the key and restarting is how you rotate it, and Get API Key only ever displays whatever is there.
 
-**vLLM itself takes no configuration file.** Everything is command-line arguments built at daemon start, plus three environment variables pointing the HuggingFace cache at the volume and making its output unbuffered so downloads are visible in the service log.
+**vLLM itself takes no configuration file.** Everything is command-line arguments built at daemon start, plus three environment variables pointing the HuggingFace cache at the volume and making its output unbuffered so downloads are visible in the service log. A Custom selection may add environment variables of its own; they are spread over those three, so naming one of them replaces it.
 
 ## Dependencies
 
@@ -115,11 +115,12 @@ Three actions, all available whether or not the service is running.
 
 Picks which model vLLM serves — a curated preset, or your own `vllm serve` arguments.
 
-- **What it changes:** `serveArgs` and the selection in `store.json`.
+- **What it changes:** `serveArgs`, `serveEnv` and the selection in `store.json`.
 - **Cost:** seconds to write, then a restart — and **a first-time model download plus load can take over half an hour.**
 - **Repeat safety:** idempotent. Re-selecting the same model is a no-op; the previous model's files stay cached.
 - **Presets are filtered to your hardware.** The package detects the accelerator tier and its memory, and offers only presets that fit — a Blackwell card, a Hopper card, older CUDA, ROCm, and CPU each see a different list.
 - **Custom arguments bypass that check.** They are passed to `vllm serve` as given, so a model too large for the hardware fails at load rather than being refused up front.
+- **Custom also takes environment variables**, a name/value list validated against `^[A-Za-z_][A-Za-z0-9_]*$` and unique by name — an `HF_TOKEN` for a gated model, a `VLLM_*` tuning flag. They are stored as `serveEnv` and applied to the daemon's `exec.env`. Selecting a preset writes `serveEnv: []`, so the variables apply to a Custom selection only; `customEnv` under `modelSelection` remembers them for the next time Custom is chosen, exactly as `customArgs` remembers the argument string.
 
 ### Get API Key
 
@@ -176,7 +177,7 @@ Both volumes are copied wholesale — `sdk.Backups.ofVolumes('main', 'public')`.
 2. **No model is bundled**, and the service serves nothing until one is selected.
 3. **Integrated AMD GPUs fall back to the CPU variant** rather than attempting ROCm.
 4. **The ROCm and CPU variants are x86_64 only.** aarch64 exists for NVIDIA only.
-5. **Custom `vllm serve` arguments are not validated** against your hardware.
+5. **Custom `vllm serve` arguments are not validated** against your hardware, and neither are custom environment variables — a variable named `HF_HUB_CACHE` displaces the package's own and moves the model cache off the persistent volume.
 6. **Deleting a cached model does not clear the selection.**
 7. **The API key is on a volume other services can read.** That is deliberate, and it means any package granted that mount can use your inference endpoint.
 8. **The API key protects the `/v1`, `/v2` and `/inference` prefixes only.** Other endpoints on the same port, `/invocations` and `/pause` among them, answer unauthenticated.
@@ -203,7 +204,7 @@ file_models:
 startos_managed_env_vars:
   - HF_HUB_CACHE
   - PYTHONUNBUFFERED
-  - HF_HUB_VERBOSITY
+  - HF_HUB_VERBOSITY # any of the three is overridable by a custom env var of the same name
 dependencies: []
 interfaces:
   api: { type: api, port: 8000 } # /v1, /v2, /inference require the generated API key; other paths do not

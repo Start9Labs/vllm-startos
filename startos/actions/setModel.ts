@@ -4,7 +4,7 @@ import { storeJson } from '../fileModels/store.json'
 import { detectHardware } from '../hardware'
 import { models } from './presets'
 
-const { InputSpec, Value, Variants } = sdk
+const { InputSpec, List, Value, Variants } = sdk
 
 const customVariant = {
   name: i18n('Custom'),
@@ -17,6 +17,44 @@ const customVariant = {
       required: true,
       default: null,
     }),
+    env: Value.list(
+      List.obj(
+        {
+          name: i18n('Environment variables'),
+          description: i18n(
+            'Extra environment variables for the `vllm serve` process — a HuggingFace token for a gated model, or a `VLLM_*` tuning flag. The package sets `HF_HUB_CACHE`, `PYTHONUNBUFFERED` and `HF_HUB_VERBOSITY`, and a variable named here replaces the one it sets.',
+          ),
+          warning: i18n(
+            'Pointing `HF_HUB_CACHE` somewhere other than `/data/models` moves the model cache off the persistent volume, so every start re-downloads the model.',
+          ),
+          default: [],
+        },
+        {
+          spec: InputSpec.of({
+            name: Value.text({
+              name: i18n('Name'),
+              required: true,
+              default: null,
+              patterns: [
+                {
+                  regex: '^[A-Za-z_][A-Za-z0-9_]*$',
+                  description: i18n(
+                    'May contain letters, digits and underscores, and may not start with a digit.',
+                  ),
+                },
+              ],
+            }),
+            value: Value.text({
+              name: i18n('Value'),
+              required: false,
+              default: null,
+            }),
+          }),
+          displayAs: '{{name}}',
+          uniqueBy: 'name',
+        },
+      ),
+    ),
   }),
 }
 
@@ -118,7 +156,10 @@ export const setModel = sdk.Action.withInput(
       return {
         config: {
           selection: 'custom' as const,
-          value: { args: saved.customArgs ?? '' },
+          value: {
+            args: saved.customArgs ?? '',
+            env: saved.customEnv ?? [],
+          },
         },
       }
     }
@@ -137,10 +178,23 @@ export const setModel = sdk.Action.withInput(
   async ({ effects, input }) => {
     const config = input.config
     let serveArgs: string[]
-    let modelSelection: { selection: string; customArgs?: string }
+    let serveEnv: { name: string; value: string }[]
+    let modelSelection: {
+      selection: string
+      customArgs?: string
+      customEnv?: { name: string; value: string }[]
+    }
     if (config.selection === 'custom') {
       serveArgs = config.value.args.split(/\s+/).filter(Boolean)
-      modelSelection = { selection: 'custom', customArgs: config.value.args }
+      serveEnv = config.value.env.map(({ name, value }) => ({
+        name,
+        value: value ?? '',
+      }))
+      modelSelection = {
+        selection: 'custom',
+        customArgs: config.value.args,
+        customEnv: serveEnv,
+      }
     } else {
       const { tier, memoryGB } = await detectHardware(effects)
       const model = models.find((m) => m.id === config.selection)
@@ -156,8 +210,9 @@ export const setModel = sdk.Action.withInput(
       serveArgs = step
         ? [...cfg.args, '--max-model-len', String(step.ctx)]
         : cfg.args
+      serveEnv = []
       modelSelection = { selection: config.selection }
     }
-    await storeJson.merge(effects, { serveArgs, modelSelection })
+    await storeJson.merge(effects, { serveArgs, serveEnv, modelSelection })
   },
 )
