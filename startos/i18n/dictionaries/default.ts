@@ -42,7 +42,8 @@ const dict = {
   // actions/deleteModelCache.ts
   'Delete Model Cache': 14,
   'Remove a downloaded model from the cache to free up disk space': 15,
-  'HuggingFace model ID to delete from cache (e.g. meta-llama/Llama-3.1-8B-Instruct)': 16,
+  'The downloaded model to remove from the cache.': 41,
+  'No models are cached.': 42,
   'This will permanently delete the cached model files. The model will need to be re-downloaded if selected again.': 17,
   'Cache Deleted': 38,
   'Model cache for "${model}" has been deleted.': 39,
