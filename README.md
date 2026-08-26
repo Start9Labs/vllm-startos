@@ -120,6 +120,7 @@ Picks which model vLLM serves — a curated preset, or your own `vllm serve` arg
 - **Repeat safety:** idempotent. Re-selecting the same model is a no-op; the previous model's files stay cached.
 - **Presets are filtered to your hardware.** The package detects the accelerator tier and its memory, and offers only presets that fit — a Blackwell card, a Hopper card, older CUDA, ROCm, and CPU each see a different list.
 - **Custom arguments bypass that check.** They are passed to `vllm serve` as given, so a model too large for the hardware fails at load rather than being refused up front.
+- **Custom arguments are tokenized the way a shell tokenizes a command line** — `parseServeArgs` in `startos/actions/serveArgs.ts`. Whitespace separates arguments, single quotes are literal, double quotes take backslash escapes, a backslash escapes the next character, and a backslash before a newline continues the line. Quote removal is the whole of it: no variable, glob, brace, pipe or redirection is acted on, which is what lets `--rope-scaling '{"rope_type":"yarn"}'` through where a shell would brace-expand it. An unclosed quote or a trailing lone backslash fails the action, and the same condition is expressed as a form pattern so it fails before submission.
 - **Custom also takes environment variables**, a name/value list validated against `^[A-Za-z_][A-Za-z0-9_]*$` and unique by name — an `HF_TOKEN` for a gated model, a `VLLM_*` tuning flag. They are stored as `serveEnv` and applied to the daemon's `exec.env`. Selecting a preset writes `serveEnv: []`, so the variables apply to a Custom selection only; `customEnv` under `modelSelection` remembers them for the next time Custom is chosen, exactly as `customArgs` remembers the argument string.
 
 ### Get API Key
@@ -177,7 +178,7 @@ Both volumes are copied wholesale — `sdk.Backups.ofVolumes('main', 'public')`.
 2. **No model is bundled**, and the service serves nothing until one is selected.
 3. **Integrated AMD GPUs fall back to the CPU variant** rather than attempting ROCm.
 4. **The ROCm and CPU variants are x86_64 only.** aarch64 exists for NVIDIA only.
-5. **Custom `vllm serve` arguments are not validated** against your hardware, and neither are custom environment variables — a variable named `HF_HUB_CACHE` displaces the package's own and moves the model cache off the persistent volume.
+5. **Custom `vllm serve` arguments are not validated** against your hardware beyond their quoting, and neither are custom environment variables — a variable named `HF_HUB_CACHE` displaces the package's own and moves the model cache off the persistent volume.
 6. **Deleting a cached model does not clear the selection.**
 7. **The API key is on a volume other services can read.** That is deliberate, and it means any package granted that mount can use your inference endpoint.
 8. **The API key protects the `/v1`, `/v2` and `/inference` prefixes only.** Other endpoints on the same port, `/invocations` and `/pause` among them, answer unauthenticated.

@@ -3,8 +3,11 @@ import { sdk } from '../sdk'
 import { storeJson } from '../fileModels/store.json'
 import { detectHardware } from '../hardware'
 import { models } from './presets'
+import { parseServeArgs, SERVE_ARGS_PATTERN } from './serveArgs'
 
 const { InputSpec, List, Value, Variants } = sdk
+
+const ENV_NAME = /^[A-Za-z_][A-Za-z0-9_]*$/
 
 const customVariant = {
   name: i18n('Custom'),
@@ -12,10 +15,18 @@ const customVariant = {
     args: Value.text({
       name: i18n('vLLM serve arguments'),
       description: i18n(
-        "The full argument string passed after `vllm serve`. Starts with the model id, then any flags. Split on whitespace, so quoted JSON values won't survive — use a preset for those.",
+        'The full argument string passed after `vllm serve`. Starts with the model id, then any flags. Quoting works as it does in a shell, so `--foo "a b"` and `--bar \'{"k": 1}\'` each stay a single argument. Nothing is expanded — no variables, globs, pipes or redirection.',
       ),
       required: true,
       default: null,
+      patterns: [
+        {
+          regex: SERVE_ARGS_PATTERN,
+          description: i18n(
+            'Every quote must be closed, and the string may not end with a lone backslash.',
+          ),
+        },
+      ],
     }),
     env: Value.list(
       List.obj(
@@ -37,7 +48,7 @@ const customVariant = {
               default: null,
               patterns: [
                 {
-                  regex: '^[A-Za-z_][A-Za-z0-9_]*$',
+                  regex: ENV_NAME.source,
                   description: i18n(
                     'May contain letters, digits and underscores, and may not start with a digit.',
                   ),
@@ -185,11 +196,20 @@ export const setModel = sdk.Action.withInput(
       customEnv?: { name: string; value: string }[]
     }
     if (config.selection === 'custom') {
-      serveArgs = config.value.args.split(/\s+/).filter(Boolean)
-      serveEnv = config.value.env.map(({ name, value }) => ({
-        name,
-        value: value ?? '',
-      }))
+      serveArgs = parseServeArgs(config.value.args)
+      if (serveArgs.length === 0) {
+        throw new Error(i18n('The serve arguments must start with a model id.'))
+      }
+      serveEnv = config.value.env.map(({ name, value }) => {
+        if (!ENV_NAME.test(name)) {
+          throw new Error(
+            i18n(
+              'An environment variable name may contain only letters, digits and underscores, and may not start with a digit.',
+            ),
+          )
+        }
+        return { name, value: value ?? '' }
+      })
       modelSelection = {
         selection: 'custom',
         customArgs: config.value.args,

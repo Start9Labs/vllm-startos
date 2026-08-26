@@ -36,6 +36,6 @@ Point any OpenAI-compatible client at the **vLLM API Server** interface address 
 ## Limitations
 
 - The API key covers the `/v1`, `/v2` and `/inference` paths. Other paths vLLM serves on the same port answer without it, among them `/invocations`, which runs inference just as `/v1/chat/completions` does, and `/pause`, which stops the engine serving. Share the interface address only with clients you would give the key to.
-- The **Custom** model option splits your input on whitespace, so arguments whose values contain spaces (such as JSON-valued flags) won't survive. Use a preset when you need those. Environment variables are a separate list and are not split, so their values may contain spaces.
+- The **Custom** model option quotes the way a shell does, so `--foo "a b"` and `--bar '{"k": 1}'` each stay a single argument. It splits the string into arguments and does nothing else: a `$VAR`, a `*` glob, a `|` or a `>` is handed to vLLM as written rather than acted on.
 - Environment variables are set only for a **Custom** selection. Choosing a preset clears them.
 - The package sets `HF_HUB_CACHE`, `PYTHONUNBUFFERED` and `HF_HUB_VERBOSITY` itself, and a variable you name replaces the one it sets. Pointing `HF_HUB_CACHE` away from `/data/models` moves the model cache off the persistent volume, so every start re-downloads the model.
