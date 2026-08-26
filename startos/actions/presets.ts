@@ -432,6 +432,10 @@ export const models: ModelPreset[] = [
     },
   },
   {
+    // hopper + older use a compressed-tensors W4A16 checkpoint, so vLLM picks
+    // the quantization up from the model config and no `--quantization` flag is
+    // passed. vLLM 0.28 moved bitsandbytes out of tree and the official images
+    // do not carry the plugin, so a bnb checkpoint no longer loads.
     id: 'mistral-small-32-24b',
     displayName: 'Mistral Small 3.2 24B Instruct',
     configs: {
@@ -453,11 +457,7 @@ export const models: ModelPreset[] = [
       },
       'nvidia-hopper': {
         args: [
-          'unsloth/Mistral-Small-3.2-24B-Instruct-2506-bnb-4bit',
-          '--quantization',
-          'bitsandbytes',
-          '--load-format',
-          'bitsandbytes',
+          'jeffcookio/Mistral-Small-3.2-24B-Instruct-2506-awq-sym',
           '--tokenizer-mode',
           'mistral',
           '--enable-auto-tool-choice',
@@ -473,11 +473,7 @@ export const models: ModelPreset[] = [
       },
       'nvidia-older': {
         args: [
-          'unsloth/Mistral-Small-3.2-24B-Instruct-2506-bnb-4bit',
-          '--quantization',
-          'bitsandbytes',
-          '--load-format',
-          'bitsandbytes',
+          'jeffcookio/Mistral-Small-3.2-24B-Instruct-2506-awq-sym',
           '--tokenizer-mode',
           'mistral',
           '--enable-auto-tool-choice',
