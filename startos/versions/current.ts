@@ -1,10 +1,11 @@
 import { VersionInfo } from '@start9labs/start-sdk'
 
 export const current = VersionInfo.of({
-  version: '0.27.1:0',
+  version: '0.27.1:1',
   releaseNotes: {
     en_US: `Updates vLLM to **0.27.1**.
 
+- **Delete Model Cache** now lists the models already in the cache, with their sizes, so you pick one instead of typing a HuggingFace model id.
 - New model support: Kimi K3, Qwen3.5 (dense and MoE), K-EXAONE-2.0, VaultGemma and jina-embeddings-v5, on top of PyTorch 2.13 and Transformers 5.14.1.
 - Faster first request: kernels are now warmed up at startup, removing the compilation stall that used to hit the first prompt.
 - The OpenAI-compatible API gains Cohere chat v2 support, a per-request \`stream_interval\` option and clearer request errors; startup logging is much quieter.
@@ -15,6 +16,7 @@ export const current = VersionInfo.of({
 Full upstream release notes: https://github.com/vllm-project/vllm/releases/tag/v0.27.1`,
     es_ES: `Actualiza vLLM a **0.27.1**.
 
+- **Eliminar caché del modelo** ahora muestra los modelos que ya están en la caché, con su tamaño, para que elijas uno en lugar de escribir un ID de modelo de HuggingFace.
 - Nuevos modelos compatibles: Kimi K3, Qwen3.5 (denso y MoE), K-EXAONE-2.0, VaultGemma y jina-embeddings-v5, sobre PyTorch 2.13 y Transformers 5.14.1.
 - Primera petición más rápida: los kernels se precalientan al arrancar, eliminando la pausa de compilación que afectaba al primer prompt.
 - La API compatible con OpenAI incorpora soporte para Cohere chat v2, una opción \`stream_interval\` por petición y errores de petición más claros; el registro de arranque es mucho menos ruidoso.
@@ -25,6 +27,7 @@ Full upstream release notes: https://github.com/vllm-project/vllm/releases/tag/v
 Notas de la versión completas: https://github.com/vllm-project/vllm/releases/tag/v0.27.1`,
     de_DE: `Aktualisiert vLLM auf **0.27.1**.
 
+- **Modell-Cache löschen** listet jetzt die bereits im Cache liegenden Modelle mit ihrer Größe auf, sodass Sie eines auswählen, statt eine HuggingFace-Modell-ID einzugeben.
 - Neue Modellunterstützung: Kimi K3, Qwen3.5 (dicht und MoE), K-EXAONE-2.0, VaultGemma und jina-embeddings-v5, auf Basis von PyTorch 2.13 und Transformers 5.14.1.
 - Schnellere erste Anfrage: Kernel werden beim Start vorgewärmt, wodurch die Kompilierungspause beim ersten Prompt entfällt.
 - Die OpenAI-kompatible API erhält Unterstützung für Cohere Chat v2, eine \`stream_interval\`-Option pro Anfrage und verständlichere Anfragefehler; die Startprotokollierung ist deutlich ruhiger.
@@ -35,6 +38,7 @@ Notas de la versión completas: https://github.com/vllm-project/vllm/releases/ta
 Vollständige Upstream-Versionshinweise: https://github.com/vllm-project/vllm/releases/tag/v0.27.1`,
     pl_PL: `Aktualizuje vLLM do **0.27.1**.
 
+- **Usuń pamięć podręczną modelu** wyświetla teraz modele znajdujące się w pamięci podręcznej wraz z ich rozmiarem, więc wybierasz jeden z listy zamiast wpisywać identyfikator modelu HuggingFace.
 - Obsługa nowych modeli: Kimi K3, Qwen3.5 (gęste i MoE), K-EXAONE-2.0, VaultGemma oraz jina-embeddings-v5, w oparciu o PyTorch 2.13 i Transformers 5.14.1.
 - Szybsze pierwsze zapytanie: jądra obliczeniowe są rozgrzewane przy starcie, co eliminuje przestój na kompilację przy pierwszym prompcie.
 - API zgodne z OpenAI zyskuje obsługę Cohere chat v2, opcję \`stream_interval\` na zapytanie oraz czytelniejsze komunikaty o błędach; logi startowe są znacznie mniej hałaśliwe.
@@ -45,6 +49,7 @@ Vollständige Upstream-Versionshinweise: https://github.com/vllm-project/vllm/re
 Pełne informacje o wydaniu: https://github.com/vllm-project/vllm/releases/tag/v0.27.1`,
     fr_FR: `Met à jour vLLM vers **0.27.1**.
 
+- **Supprimer le cache du modèle** répertorie désormais les modèles déjà en cache, avec leur taille, afin que vous en choisissiez un au lieu de saisir un identifiant de modèle HuggingFace.
 - Nouveaux modèles pris en charge : Kimi K3, Qwen3.5 (dense et MoE), K-EXAONE-2.0, VaultGemma et jina-embeddings-v5, sur la base de PyTorch 2.13 et Transformers 5.14.1.
 - Première requête plus rapide : les noyaux sont préchauffés au démarrage, ce qui supprime la pause de compilation qui affectait la première invite.
 - L'API compatible OpenAI gagne la prise en charge de Cohere chat v2, une option \`stream_interval\` par requête et des erreurs de requête plus claires ; les journaux de démarrage sont bien moins bavards.
