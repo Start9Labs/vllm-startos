@@ -133,7 +133,8 @@ Displays the API key.
 Removes a downloaded model's files from the cache.
 
 - **When to run it:** to reclaim disk space from a model you no longer serve.
-- **Cost:** seconds.
+- **The form lists what is actually cached.** It reads the HuggingFace cache directories on the `main` volume — `models/`, which the daemon sees as `/data/models` — and offers each one labelled with its size on disk, so there is nothing to type and no way to name a model that isn't there. With an empty cache the field is disabled.
+- **Cost:** seconds. The form walks the cache to size each model before it opens.
 - **This is permanent.** The model has to be downloaded again if you select it later.
 - **It does not change the selection**, so deleting the model currently being served leaves vLLM pointing at files that are gone.
 

@@ -45,6 +45,7 @@ export const current = VersionInfo.of({
   releaseNotes: {
     en_US: `Updates vLLM to **0.28.0**.
 
+- **Delete Model Cache** now lists the models already in the cache, with their sizes, so you pick one instead of typing a HuggingFace model id.
 - New model support: Muse Glimmer, Ling 3.0 Flash, Dots3 and Interns2mobius, on top of Transformers 5.15.0.
 - Better throughput out of the box: the batched-token budget doubles from 8192 to 16384, and prefix caching is now on by default for Mamba models.
 - AMD: ROCm moves to torch 2.12 / triton 3.7, adds Qwen3.8 and Kimi-K3, and runs DeepSeek-V4 on gfx11 and gfx950.
@@ -56,6 +57,7 @@ export const current = VersionInfo.of({
 Full upstream release notes: https://github.com/vllm-project/vllm/releases/tag/v0.28.0`,
     es_ES: `Actualiza vLLM a **0.28.0**.
 
+- **Eliminar caché del modelo** ahora muestra los modelos que ya están en la caché, con su tamaño, para que elijas uno en lugar de escribir un ID de modelo de HuggingFace.
 - Nuevos modelos compatibles: Muse Glimmer, Ling 3.0 Flash, Dots3 e Interns2mobius, sobre Transformers 5.15.0.
 - Mejor rendimiento de serie: el presupuesto de tokens por lote se duplica de 8192 a 16384 y el almacenamiento en caché de prefijos está activado por defecto para los modelos Mamba.
 - AMD: ROCm pasa a torch 2.12 / triton 3.7, añade Qwen3.8 y Kimi-K3, y ejecuta DeepSeek-V4 en gfx11 y gfx950.
@@ -67,6 +69,7 @@ Full upstream release notes: https://github.com/vllm-project/vllm/releases/tag/v
 Notas de la versión completas: https://github.com/vllm-project/vllm/releases/tag/v0.28.0`,
     de_DE: `Aktualisiert vLLM auf **0.28.0**.
 
+- **Modell-Cache löschen** listet jetzt die bereits im Cache liegenden Modelle mit ihrer Größe auf, sodass Sie eines auswählen, statt eine HuggingFace-Modell-ID einzugeben.
 - Neue Modellunterstützung: Muse Glimmer, Ling 3.0 Flash, Dots3 und Interns2mobius, auf Basis von Transformers 5.15.0.
 - Höherer Durchsatz ohne Zutun: das Batch-Token-Budget verdoppelt sich von 8192 auf 16384, und Präfix-Caching ist für Mamba-Modelle nun standardmäßig aktiv.
 - AMD: ROCm wechselt auf torch 2.12 / triton 3.7, ergänzt Qwen3.8 und Kimi-K3 und führt DeepSeek-V4 auf gfx11 und gfx950 aus.
@@ -78,6 +81,7 @@ Notas de la versión completas: https://github.com/vllm-project/vllm/releases/ta
 Vollständige Upstream-Versionshinweise: https://github.com/vllm-project/vllm/releases/tag/v0.28.0`,
     pl_PL: `Aktualizuje vLLM do **0.28.0**.
 
+- **Usuń pamięć podręczną modelu** wyświetla teraz modele znajdujące się w pamięci podręcznej wraz z ich rozmiarem, więc wybierasz jeden z listy zamiast wpisywać identyfikator modelu HuggingFace.
 - Obsługa nowych modeli: Muse Glimmer, Ling 3.0 Flash, Dots3 oraz Interns2mobius, w oparciu o Transformers 5.15.0.
 - Wyższa przepustowość bez zmian w ustawieniach: budżet tokenów w partii rośnie z 8192 do 16384, a buforowanie prefiksów jest domyślnie włączone dla modeli Mamba.
 - AMD: ROCm przechodzi na torch 2.12 / triton 3.7, dodaje Qwen3.8 i Kimi-K3 oraz uruchamia DeepSeek-V4 na gfx11 i gfx950.
@@ -89,6 +93,7 @@ Vollständige Upstream-Versionshinweise: https://github.com/vllm-project/vllm/re
 Pełne informacje o wydaniu: https://github.com/vllm-project/vllm/releases/tag/v0.28.0`,
     fr_FR: `Met à jour vLLM vers **0.28.0**.
 
+- **Supprimer le cache du modèle** répertorie désormais les modèles déjà en cache, avec leur taille, afin que vous en choisissiez un au lieu de saisir un identifiant de modèle HuggingFace.
 - Nouveaux modèles pris en charge : Muse Glimmer, Ling 3.0 Flash, Dots3 et Interns2mobius, sur la base de Transformers 5.15.0.
 - Meilleur débit par défaut : le budget de jetons par lot passe de 8192 à 16384, et la mise en cache des préfixes est désormais activée par défaut pour les modèles Mamba.
 - AMD : ROCm passe à torch 2.12 / triton 3.7, ajoute Qwen3.8 et Kimi-K3, et exécute DeepSeek-V4 sur gfx11 et gfx950.
