@@ -3,8 +3,11 @@ import { sdk } from '../sdk'
 import { storeJson } from '../fileModels/store.json'
 import { detectHardware } from '../hardware'
 import { models } from './presets'
+import { parseServeArgs, SERVE_ARGS_PATTERN } from './serveArgs'
 
-const { InputSpec, Value, Variants } = sdk
+const { InputSpec, List, Value, Variants } = sdk
+
+const ENV_NAME = /^[A-Za-z_][A-Za-z0-9_]*$/
 
 const customVariant = {
   name: i18n('Custom'),
@@ -12,11 +15,57 @@ const customVariant = {
     args: Value.text({
       name: i18n('vLLM serve arguments'),
       description: i18n(
-        "The full argument string passed after `vllm serve`. Starts with the model id, then any flags. Split on whitespace, so quoted JSON values won't survive — use a preset for those.",
+        'The full argument string passed after `vllm serve`. Starts with the model id, then any flags. Quoting works as it does in a shell, so `--foo "a b"` and `--bar \'{"k": 1}\'` each stay a single argument. Nothing is expanded — no variables, globs, pipes or redirection.',
       ),
       required: true,
       default: null,
+      patterns: [
+        {
+          regex: SERVE_ARGS_PATTERN,
+          description: i18n(
+            'Every quote must be closed, and the string may not end with a lone backslash.',
+          ),
+        },
+      ],
     }),
+    env: Value.list(
+      List.obj(
+        {
+          name: i18n('Environment variables'),
+          description: i18n(
+            'Extra environment variables for the `vllm serve` process — a HuggingFace token for a gated model, or a `VLLM_*` tuning flag. The package sets `HF_HUB_CACHE`, `PYTHONUNBUFFERED` and `HF_HUB_VERBOSITY`, and a variable named here replaces the one it sets.',
+          ),
+          warning: i18n(
+            'Pointing `HF_HUB_CACHE` somewhere other than `/data/models` moves the model cache off the persistent volume, so every start re-downloads the model.',
+          ),
+          default: [],
+        },
+        {
+          spec: InputSpec.of({
+            name: Value.text({
+              name: i18n('Name'),
+              required: true,
+              default: null,
+              patterns: [
+                {
+                  regex: ENV_NAME.source,
+                  description: i18n(
+                    'May contain letters, digits and underscores, and may not start with a digit.',
+                  ),
+                },
+              ],
+            }),
+            value: Value.text({
+              name: i18n('Value'),
+              required: false,
+              default: null,
+            }),
+          }),
+          displayAs: '{{name}}',
+          uniqueBy: 'name',
+        },
+      ),
+    ),
   }),
 }
 
@@ -118,7 +167,10 @@ export const setModel = sdk.Action.withInput(
       return {
         config: {
           selection: 'custom' as const,
-          value: { args: saved.customArgs ?? '' },
+          value: {
+            args: saved.customArgs ?? '',
+            env: saved.customEnv ?? [],
+          },
         },
       }
     }
@@ -137,10 +189,32 @@ export const setModel = sdk.Action.withInput(
   async ({ effects, input }) => {
     const config = input.config
     let serveArgs: string[]
-    let modelSelection: { selection: string; customArgs?: string }
+    let serveEnv: { name: string; value: string }[]
+    let modelSelection: {
+      selection: string
+      customArgs?: string
+      customEnv?: { name: string; value: string }[]
+    }
     if (config.selection === 'custom') {
-      serveArgs = config.value.args.split(/\s+/).filter(Boolean)
-      modelSelection = { selection: 'custom', customArgs: config.value.args }
+      serveArgs = parseServeArgs(config.value.args)
+      if (serveArgs.length === 0) {
+        throw new Error(i18n('The serve arguments must start with a model id.'))
+      }
+      serveEnv = config.value.env.map(({ name, value }) => {
+        if (!ENV_NAME.test(name)) {
+          throw new Error(
+            i18n(
+              'An environment variable name may contain only letters, digits and underscores, and may not start with a digit.',
+            ),
+          )
+        }
+        return { name, value: value ?? '' }
+      })
+      modelSelection = {
+        selection: 'custom',
+        customArgs: config.value.args,
+        customEnv: serveEnv,
+      }
     } else {
       const { tier, memoryGB } = await detectHardware(effects)
       const model = models.find((m) => m.id === config.selection)
@@ -156,8 +230,9 @@ export const setModel = sdk.Action.withInput(
       serveArgs = step
         ? [...cfg.args, '--max-model-len', String(step.ctx)]
         : cfg.args
+      serveEnv = []
       modelSelection = { selection: config.selection }
     }
-    await storeJson.merge(effects, { serveArgs, modelSelection })
+    await storeJson.merge(effects, { serveArgs, serveEnv, modelSelection })
   },
 )

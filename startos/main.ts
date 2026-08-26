@@ -8,6 +8,7 @@ export const main = sdk.setupMain(async ({ effects }) => {
   console.info(i18n('Starting vLLM!'))
 
   const serveArgs = await storeJson.read((s) => s.serveArgs).const(effects)
+  const serveEnv = await storeJson.read((s) => s.serveEnv).const(effects)
 
   const apiKey = await credentialsJson.read((c) => c.apiKey).const(effects)
   if (!apiKey) {
@@ -76,6 +77,9 @@ export const main = sdk.setupMain(async ({ effects }) => {
         HF_HUB_CACHE: '/data/models',
         PYTHONUNBUFFERED: '1',
         HF_HUB_VERBOSITY: 'info',
+        ...Object.fromEntries(
+          (serveEnv ?? []).map(({ name, value }) => [name, value]),
+        ),
       },
     },
     ready: {

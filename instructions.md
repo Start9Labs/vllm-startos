@@ -14,7 +14,7 @@ vLLM does not serve anything until you choose a model. Until you run the **Set M
 
 ## Getting set up
 
-1. Run the **Set Model** action — a **Set Model** task is waiting on the dashboard whenever no model is selected. It detects your host's GPU (or CPU) and available memory, then offers the curated model presets that will fit. Pick one — or choose **Custom** to pass your own `vllm serve` arguments.
+1. Run the **Set Model** action — a **Set Model** task is waiting on the dashboard whenever no model is selected. It detects your host's GPU (or CPU) and available memory, then offers the curated model presets that will fit. Pick one — or choose **Custom** to pass your own `vllm serve` arguments, and any environment variables the model needs.
 2. Wait for the first start to finish. After you select a model, vLLM downloads its weights into the cache and loads them. A first-time download plus load can take **30 minutes or more**; loading an already-cached model can take **15 minutes or more**, depending on your hardware and bandwidth. While this happens the service shows a **loading** status — it is not hung. If it still hasn't come up after about 35 minutes, check the service logs for errors.
 
 Your API key is generated automatically — retrieve it from the **Get API Key** action whenever you connect a client; it isn't a required setup step.
@@ -29,11 +29,13 @@ Point any OpenAI-compatible client at the **vLLM API Server** interface address 
 
 ### Actions
 
-- **Set Model** — choose which model to serve, from a hardware-filtered preset list or custom arguments. Restarts the service.
+- **Set Model** — choose which model to serve, from a hardware-filtered preset list or custom arguments. **Custom** also takes a list of environment variables — an `HF_TOKEN` for a gated model, or a `VLLM_*` tuning flag. Restarts the service.
 - **Get API Key** — reveal the API key clients use to authenticate.
 - **Delete Model Cache** — pick one of the models already downloaded, listed with its size on disk, and remove it to free space.
 
 ## Limitations
 
 - The API key covers the `/v1`, `/v2` and `/inference` paths. Other paths vLLM serves on the same port answer without it, among them `/invocations`, which runs inference just as `/v1/chat/completions` does, and `/pause`, which stops the engine serving. Share the interface address only with clients you would give the key to.
-- The **Custom** model option splits your input on whitespace, so arguments whose values contain spaces (such as JSON-valued flags) won't survive. Use a preset when you need those.
+- The **Custom** model option quotes the way a shell does, so `--foo "a b"` and `--bar '{"k": 1}'` each stay a single argument. It splits the string into arguments and does nothing else: a `$VAR`, a `*` glob, a `|` or a `>` is handed to vLLM as written rather than acted on.
+- Environment variables are set only for a **Custom** selection. Choosing a preset clears them.
+- The package sets `HF_HUB_CACHE`, `PYTHONUNBUFFERED` and `HF_HUB_VERBOSITY` itself, and a variable you name replaces the one it sets. Pointing `HF_HUB_CACHE` away from `/data/models` moves the model cache off the persistent volume, so every start re-downloads the model.
