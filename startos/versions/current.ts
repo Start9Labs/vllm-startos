@@ -1,4 +1,41 @@
-import { VersionInfo } from '@start9labs/start-sdk'
+import { T, VersionInfo } from '@start9labs/start-sdk'
+import { storeJson } from '../fileModels/store.json'
+
+const BNB_MODEL = 'unsloth/Mistral-Small-3.2-24B-Instruct-2506-bnb-4bit'
+const W4A16_MODEL = 'jeffcookio/Mistral-Small-3.2-24B-Instruct-2506-awq-sym'
+
+function dropFlag(args: string[], flag: string, value: string): string[] {
+  const kept: string[] = []
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === flag && args[i + 1] === value) {
+      i++
+      continue
+    }
+    kept.push(args[i])
+  }
+  return kept
+}
+
+// The model id is the first serve argument, and flags follow it.
+function addFlag(args: string[], flag: string, value: string): string[] {
+  const [model, ...rest] = args
+  return [model, flag, value, ...rest]
+}
+
+// The official vLLM images carry no bitsandbytes plugin as of 0.28.
+async function rewriteMistralArgs(
+  effects: T.Effects,
+  from: string,
+  to: string,
+  rewriteFlags: (args: string[]) => string[],
+) {
+  const store = await storeJson.read().once()
+  if (store?.modelSelection?.selection !== 'mistral-small-32-24b') return
+  const args = store.serveArgs
+  if (!args?.includes(from)) return
+  const serveArgs = rewriteFlags(args.map((a) => (a === from ? to : a)))
+  await storeJson.merge(effects, { serveArgs })
+}
 
 export const current = VersionInfo.of({
   version: '0.29.0:0',
@@ -85,6 +122,21 @@ Pełne informacje o wydaniach upstream: [v0.28.0](https://github.com/vllm-projec
 Notes de version amont complètes : [v0.28.0](https://github.com/vllm-project/vllm/releases/tag/v0.28.0) et [v0.29.0](https://github.com/vllm-project/vllm/releases/tag/v0.29.0)`,
   },
   migrations: {
-    up: async () => {},
+    up: async ({ effects }) =>
+      rewriteMistralArgs(effects, BNB_MODEL, W4A16_MODEL, (args) =>
+        dropFlag(
+          dropFlag(args, '--quantization', 'bitsandbytes'),
+          '--load-format',
+          'bitsandbytes',
+        ),
+      ),
+    down: async ({ effects }) =>
+      rewriteMistralArgs(effects, W4A16_MODEL, BNB_MODEL, (args) =>
+        addFlag(
+          addFlag(args, '--load-format', 'bitsandbytes'),
+          '--quantization',
+          'bitsandbytes',
+        ),
+      ),
   },
 })

@@ -432,10 +432,8 @@ export const models: ModelPreset[] = [
     },
   },
   {
-    // hopper + older use a compressed-tensors W4A16 checkpoint, so vLLM picks
-    // the quantization up from the model config and no `--quantization` flag is
-    // passed. vLLM 0.28 moved bitsandbytes out of tree and the official images
-    // do not carry the plugin, so a bnb checkpoint no longer loads.
+    // hopper/older pass no `--quantization`: vLLM reads compressed-tensors
+    // out of the checkpoint config.
     id: 'mistral-small-32-24b',
     displayName: 'Mistral Small 3.2 24B Instruct',
     configs: {

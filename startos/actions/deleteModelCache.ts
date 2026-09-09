@@ -35,8 +35,8 @@ function formatSize(bytes: number): string {
   return `${value < 10 && unit > 0 ? value.toFixed(1) : Math.round(value)} ${units[unit]}`
 }
 
-// Only regular files are counted. The snapshot tree is symlinks into `blobs`,
-// so following them would count every weight twice.
+// A HuggingFace snapshot tree is symlinks into `blobs`, so counting anything
+// but regular files counts every weight twice.
 async function directorySize(dir: string): Promise<number> {
   const entries = await fs.readdir(dir, { withFileTypes: true }).catch(() => [])
   const sizes = await Promise.all(
@@ -114,9 +114,8 @@ export const deleteModelCache = sdk.Action.withInput(
 
   // the execution function
   async ({ effects, input }) => {
-    // With an empty cache the select carries no values, and the SDK's
-    // validator degrades to a bare string there — so check the selection
-    // against the cache rather than trusting it as a path component.
+    // `dynamicSelect` validates against a bare `z.string()`, so the selection
+    // is untrusted until it is matched back to the cache.
     const cached = await listCachedModels()
     const model = cached.find((m) => m.dir === input.model)
     if (!model) {
