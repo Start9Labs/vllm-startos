@@ -2,9 +2,9 @@ import { T } from '@start9labs/start-sdk'
 import { sdk } from './sdk'
 
 export type HardwareTier =
-  | 'nvidia-blackwell' // sm_120/sm_121 — DGX Spark, RTX 50, B100/B200 (NVFP4-capable)
+  | 'nvidia-blackwell' // sm_100 and up — B200/GB200, Thor, RTX 50, DGX Spark, Rubin (NVFP4-capable)
   | 'nvidia-hopper' // sm_90 — H100, H200 (FP8-capable)
-  | 'nvidia-older' // sm_80–sm_89 — A100, A6000, RTX 40/30
+  | 'nvidia-older' // below sm_90 — A100, A6000, RTX 40/30
   | 'amd' // ROCm
   | 'cpu' // no GPU detected
 
@@ -61,7 +61,7 @@ async function detect(effects: T.Effects): Promise<HardwareInfo> {
         const cap = lines[0][0]
         const major = parseInt(cap.split('.')[0] ?? '0', 10)
         nvidiaTier =
-          major >= 12
+          major >= 10
             ? 'nvidia-blackwell'
             : major === 9
               ? 'nvidia-hopper'
