@@ -432,6 +432,8 @@ export const models: ModelPreset[] = [
     },
   },
   {
+    // hopper/older pass no `--quantization`: vLLM reads compressed-tensors
+    // out of the checkpoint config.
     id: 'mistral-small-32-24b',
     displayName: 'Mistral Small 3.2 24B Instruct',
     configs: {
@@ -453,11 +455,7 @@ export const models: ModelPreset[] = [
       },
       'nvidia-hopper': {
         args: [
-          'unsloth/Mistral-Small-3.2-24B-Instruct-2506-bnb-4bit',
-          '--quantization',
-          'bitsandbytes',
-          '--load-format',
-          'bitsandbytes',
+          'jeffcookio/Mistral-Small-3.2-24B-Instruct-2506-awq-sym',
           '--tokenizer-mode',
           'mistral',
           '--enable-auto-tool-choice',
@@ -473,11 +471,7 @@ export const models: ModelPreset[] = [
       },
       'nvidia-older': {
         args: [
-          'unsloth/Mistral-Small-3.2-24B-Instruct-2506-bnb-4bit',
-          '--quantization',
-          'bitsandbytes',
-          '--load-format',
-          'bitsandbytes',
+          'jeffcookio/Mistral-Small-3.2-24B-Instruct-2506-awq-sym',
           '--tokenizer-mode',
           'mistral',
           '--enable-auto-tool-choice',
