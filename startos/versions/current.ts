@@ -16,6 +16,7 @@ export const current = VersionInfo.of({
 - **Delete Model Cache** now lists cached models and their sizes, so you select one instead of typing its HuggingFace model id.
 - Upstream moved bitsandbytes quantization into a separate plugin that the official images do not carry. The **Mistral Small 3.2 24B** preset on Hopper and older NVIDIA cards now uses an INT4 checkpoint that loads without it, and an existing selection is switched during the update. Choose another quantization if custom serve arguments use \`--quantization bitsandbytes\` or \`--load-format bitsandbytes\`.
 - The package documentation now identifies the API-key boundary: the key covers \`/v1\`, \`/v2\` and \`/inference\`, while other endpoints on the same port answer without it.
+- Backups no longer include downloaded model weights, so they are far smaller. After a restore, the selected model is downloaded again on the first start.
 
 Full upstream release notes: [v0.28.0](https://github.com/vllm-project/vllm/releases/tag/v0.28.0) and [v0.29.0](https://github.com/vllm-project/vllm/releases/tag/v0.29.0)`,
     es_ES: `Actualiza vLLM a **0.29.0**.
@@ -31,6 +32,7 @@ Full upstream release notes: [v0.28.0](https://github.com/vllm-project/vllm/rele
 - **Eliminar caché del modelo** ahora muestra los modelos almacenados y sus tamaños, para que selecciones uno en lugar de escribir su ID de HuggingFace.
 - Upstream trasladó la cuantización bitsandbytes a un complemento separado que las imágenes oficiales no incluyen. El preajuste **Mistral Small 3.2 24B** en tarjetas NVIDIA Hopper y anteriores usa ahora un modelo INT4 que se carga sin él, y una selección existente se cambia durante la actualización. Elige otra cuantización si tus argumentos personalizados usan \`--quantization bitsandbytes\` o \`--load-format bitsandbytes\`.
 - La documentación del paquete identifica ahora el límite de la clave de API: la clave cubre \`/v1\`, \`/v2\` e \`/inference\`, mientras que otros endpoints del mismo puerto responden sin ella.
+- Las copias de seguridad ya no incluyen los pesos de los modelos descargados, por lo que son mucho más pequeñas. Tras una restauración, el modelo seleccionado se descarga de nuevo en el primer arranque.
 
 Notas completas de upstream: [v0.28.0](https://github.com/vllm-project/vllm/releases/tag/v0.28.0) y [v0.29.0](https://github.com/vllm-project/vllm/releases/tag/v0.29.0)`,
     de_DE: `Aktualisiert vLLM auf **0.29.0**.
@@ -46,6 +48,7 @@ Notas completas de upstream: [v0.28.0](https://github.com/vllm-project/vllm/rele
 - **Modell-Cache löschen** listet jetzt zwischengespeicherte Modelle samt Größe auf, sodass Sie eines auswählen, statt seine HuggingFace-Modell-ID einzugeben.
 - Upstream hat die bitsandbytes-Quantisierung in ein separates Plugin verschoben, das die offiziellen Images nicht enthalten. Die Voreinstellung **Mistral Small 3.2 24B** verwendet auf Hopper- und älteren NVIDIA-Karten jetzt ein INT4-Modell, das ohne dieses Plugin lädt; eine bestehende Auswahl wird bei der Aktualisierung umgestellt. Wählen Sie eine andere Quantisierung, wenn eigene Serve-Argumente \`--quantization bitsandbytes\` oder \`--load-format bitsandbytes\` verwenden.
 - Die Paketdokumentation benennt jetzt die Grenze des API-Schlüssels: Er schützt \`/v1\`, \`/v2\` und \`/inference\`, während andere Endpunkte am selben Port ohne ihn antworten.
+- Backups enthalten keine heruntergeladenen Modellgewichte mehr und sind dadurch deutlich kleiner. Nach einer Wiederherstellung wird das ausgewählte Modell beim ersten Start erneut heruntergeladen.
 
 Vollständige Upstream-Versionshinweise: [v0.28.0](https://github.com/vllm-project/vllm/releases/tag/v0.28.0) und [v0.29.0](https://github.com/vllm-project/vllm/releases/tag/v0.29.0)`,
     pl_PL: `Aktualizuje vLLM do **0.29.0**.
@@ -61,6 +64,7 @@ Vollständige Upstream-Versionshinweise: [v0.28.0](https://github.com/vllm-proje
 - **Usuń pamięć podręczną modelu** wyświetla teraz zapisane modele wraz z ich rozmiarem, więc wybierasz jeden zamiast wpisywać jego identyfikator HuggingFace.
 - Upstream przeniósł kwantyzację bitsandbytes do osobnej wtyczki, której oficjalne obrazy nie zawierają. Gotowa konfiguracja **Mistral Small 3.2 24B** na kartach NVIDIA Hopper i starszych korzysta teraz z modelu INT4, który ładuje się bez tej wtyczki, a istniejący wybór zostaje przełączony podczas aktualizacji. Wybierz inną kwantyzację, jeśli własne argumenty używają \`--quantization bitsandbytes\` lub \`--load-format bitsandbytes\`.
 - Dokumentacja pakietu określa teraz granicę klucza API: klucz obejmuje \`/v1\`, \`/v2\` oraz \`/inference\`, natomiast inne punkty końcowe na tym samym porcie odpowiadają bez niego.
+- Kopie zapasowe nie zawierają już pobranych wag modeli, dzięki czemu są znacznie mniejsze. Po przywróceniu wybrany model jest pobierany ponownie przy pierwszym uruchomieniu.
 
 Pełne informacje o wydaniach upstream: [v0.28.0](https://github.com/vllm-project/vllm/releases/tag/v0.28.0) i [v0.29.0](https://github.com/vllm-project/vllm/releases/tag/v0.29.0)`,
     fr_FR: `Met à jour vLLM vers **0.29.0**.
@@ -76,6 +80,7 @@ Pełne informacje o wydaniach upstream: [v0.28.0](https://github.com/vllm-projec
 - **Supprimer le cache du modèle** répertorie désormais les modèles en cache avec leur taille, afin que vous en choisissiez un au lieu de saisir son identifiant HuggingFace.
 - En amont, la quantification bitsandbytes a été déplacée vers un greffon distinct que les images officielles n'embarquent pas. Le préréglage **Mistral Small 3.2 24B** utilise maintenant, sur les cartes NVIDIA Hopper et antérieures, un modèle INT4 qui se charge sans ce greffon, et une sélection existante est basculée pendant la mise à jour. Choisissez une autre quantification si vos arguments personnalisés utilisent \`--quantization bitsandbytes\` ou \`--load-format bitsandbytes\`.
 - La documentation du paquet précise maintenant la limite de la clé d'API : elle couvre \`/v1\`, \`/v2\` et \`/inference\`, tandis que d'autres points de terminaison du même port répondent sans elle.
+- Les sauvegardes n’incluent plus les poids des modèles téléchargés et sont donc beaucoup plus petites. Après une restauration, le modèle sélectionné est de nouveau téléchargé au premier démarrage.
 
 Notes de version amont complètes : [v0.28.0](https://github.com/vllm-project/vllm/releases/tag/v0.28.0) et [v0.29.0](https://github.com/vllm-project/vllm/releases/tag/v0.29.0)`,
   },

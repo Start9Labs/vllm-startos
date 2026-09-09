@@ -164,11 +164,11 @@ The logs are worth reading during a start: the package makes vLLM's output unbuf
 
 ## Backups and Restore
 
-Both volumes are copied wholesale — `sdk.Backups.ofVolumes('main', 'public')`. No dump step and nothing excluded.
+Both volumes are backed up — `sdk.Backups.ofVolumes('main', 'public')` — with one exclusion: `setOptions({ exclude: ['models/'] })` leaves out `/data/models`, the HuggingFace hub cache. No dump step.
 
-- **Included:** the API key, the model selection, and **every downloaded model**.
-- **Size:** this is a very large backup. The model cache is the whole of it, and every model in it is re-downloadable from upstream.
-- **Restore:** complete, and the API key is unchanged — dependent services keep working without reconfiguration. The selected model is already cached, so the first start skips the download.
+- **Included:** the API key and the model selection.
+- **Excluded:** every downloaded model. Weights are re-downloadable from upstream, so the backup stays small rather than being dominated by the cache.
+- **Restore:** the API key is unchanged — dependent services keep working without reconfiguration. The selected model is downloaded again on the first start, which can take 30 minutes or more.
 
 ## Limitations and Differences
 

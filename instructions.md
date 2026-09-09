@@ -9,7 +9,7 @@ vLLM does not serve anything until you choose a model. Until you run the **Set M
 ## What you get on StartOS
 
 - An **OpenAI-compatible API** at the **vLLM API Server** interface (port 8000), usable by any OpenAI client library or app.
-- A managed **model cache** on the service's data volume, so weights you download persist across restarts and are included in backups.
+- A managed **model cache** on the service's data volume, so weights you download persist across restarts. The cache is excluded from backups; after a restore, the selected model is downloaded again on first start.
 - An **API key**, generated for you automatically, that protects the inference endpoints.
 
 ## Getting set up
