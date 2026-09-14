@@ -51,6 +51,8 @@ All three variants track one pinned upstream release, so they stay in lockstep. 
 
 **Integrated AMD GPUs are excluded on purpose.** The `rocm` requirement matches discrete families by product name — Navi, Radeon RX, Radeon VII, Instinct — because ROCm is unreliable on integrated Radeon; those machines fall back to `cpu`. It is a positive allowlist rather than an iGPU exclusion because StartOS's regex engine has no lookahead.
 
+**The service log never contains prompts or generated text.** The daemon appends `--no-enable-log-requests` after the user's `vllm serve` arguments, so it wins over anything set through Set Model, and vLLM refuses to start with `--enable-log-outputs` unless request logging is on. What the log carries is engine statistics, uvicorn access lines (path, status, client) and request IDs.
+
 One oneshot, `ldconfig`, refreshes the linker cache before the daemon starts. The NVIDIA container toolkit mounts the host driver libraries into the container, but on some aarch64 images they land outside the cached search paths and Triton cannot find `libcuda.so.1` without this.
 
 ## Volume and Data Layout
@@ -79,7 +81,7 @@ Two models, and the split between them is the interesting part.
 
 **The API key regenerates whenever it is missing.** Init reads it reactively and writes a new one if it is absent — so deleting the key and restarting is how you rotate it, and Get API Key only ever displays whatever is there.
 
-**vLLM itself takes no configuration file.** Everything is command-line arguments built at daemon start, plus three environment variables pointing the HuggingFace cache at the volume and making its output unbuffered so downloads are visible in the service log.
+**vLLM itself takes no configuration file.** Everything is command-line arguments built at daemon start, plus four environment variables: three point the HuggingFace cache at the volume and make its output unbuffered so downloads are visible in the service log, and `VLLM_NO_USAGE_STATS` stops vLLM reporting anonymous usage statistics to the vLLM project.
 
 ## Dependencies
 
@@ -181,6 +183,7 @@ Both volumes are backed up — `sdk.Backups.ofVolumes('main', 'public')` — wit
 7. **The API key is on a volume other services can read.** That is deliberate, and it means any package granted that mount can use your inference endpoint.
 8. **The API key protects the `/v1`, `/v2` and `/inference` prefixes only.** Other endpoints on the same port, `/invocations` and `/pause` among them, answer unauthenticated.
 9. **First start after selecting a model can take over half an hour**, and the health check will keep saying `loading` for up to 35 minutes before it treats that as a failure.
+10. **Request and output logging cannot be enabled.** `--enable-log-requests` and `--enable-log-outputs` in custom arguments are overridden and rejected respectively; usage-stats reporting to the vLLM project is off.
 
 ---
 
@@ -204,6 +207,7 @@ startos_managed_env_vars:
   - HF_HUB_CACHE
   - PYTHONUNBUFFERED
   - HF_HUB_VERBOSITY
+  - VLLM_NO_USAGE_STATS # =1; request/output logging is pinned off via --no-enable-log-requests
 dependencies: []
 interfaces:
   api: { type: api, port: 8000 } # /v1, /v2, /inference require the generated API key; other paths do not

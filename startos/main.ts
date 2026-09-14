@@ -63,6 +63,7 @@ export const main = sdk.setupMain(async ({ effects }) => {
         'vllm',
         'serve',
         ...serveArgs,
+        '--no-enable-log-requests',
         '--host',
         '0.0.0.0',
         '--port',
@@ -76,6 +77,7 @@ export const main = sdk.setupMain(async ({ effects }) => {
         HF_HUB_CACHE: '/data/models',
         PYTHONUNBUFFERED: '1',
         HF_HUB_VERBOSITY: 'info',
+        VLLM_NO_USAGE_STATS: '1',
       },
     },
     ready: {
