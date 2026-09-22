@@ -3,8 +3,11 @@ import { sdk } from '../sdk'
 import { storeJson } from '../fileModels/store.json'
 import { detectHardware } from '../hardware'
 import { models } from './presets'
+import { parseServeArgs, SERVE_ARGS_PATTERN } from './serveArgs'
 
-const { InputSpec, Value, Variants } = sdk
+const { InputSpec, List, Value, Variants } = sdk
+
+const ENV_NAME = /^[A-Za-z_][A-Za-z0-9_]*$/
 
 const customVariant = {
   name: i18n('Custom'),
@@ -12,13 +15,61 @@ const customVariant = {
     args: Value.text({
       name: i18n('vLLM serve arguments'),
       description: i18n(
-        "The full argument string passed after `vllm serve`. Starts with the model id, then any flags. Split on whitespace, so quoted JSON values won't survive — use a preset for those.",
+        'The full argument string passed after `vllm serve`. Starts with the model id, then any flags. Quoting works as it does in a shell, so `--foo "a b"` and `--bar \'{"k": 1}\'` each stay a single argument. Nothing is expanded — no variables, globs, pipes or redirection.',
       ),
       required: true,
       default: null,
+      patterns: [
+        {
+          regex: SERVE_ARGS_PATTERN,
+          description: i18n(
+            'Every quote must be closed, and the string may not end with a lone backslash.',
+          ),
+        },
+      ],
     }),
   }),
 }
+
+const environmentVariables = Value.list(
+  List.obj(
+    {
+      name: i18n('Environment variables'),
+      description: i18n(
+        'Environment variables for the `vllm serve` process — a HuggingFace token for a gated model, or a `VLLM_*` tuning flag. The package sets `HF_HUB_CACHE`, `PYTHONUNBUFFERED` and `HF_HUB_VERBOSITY`, and a variable named here replaces the one it sets.',
+      ),
+      warning: i18n(
+        'The package keeps model weights in `/data/models`; `HF_HUB_CACHE` changes the cache used for other HuggingFace files.',
+      ),
+      default: [],
+    },
+    {
+      spec: InputSpec.of({
+        name: Value.text({
+          name: i18n('Name'),
+          required: true,
+          default: null,
+          patterns: [
+            {
+              regex: ENV_NAME.source,
+              description: i18n(
+                'May contain letters, digits and underscores, and may not start with a digit.',
+              ),
+            },
+          ],
+        }),
+        value: Value.text({
+          name: i18n('Value'),
+          required: false,
+          masked: true,
+          default: null,
+        }),
+      }),
+      displayAs: '{{name}}',
+      uniqueBy: 'name',
+    },
+  ),
+)
 
 const allVariants = {
   'qwen36-35b-a3b': {
@@ -87,6 +138,7 @@ const inputSpec = InputSpec.of({
       disabled: disabledIds.length > 0 ? disabledIds : false,
     }
   }),
+  env: environmentVariables,
 })
 
 export const setModel = sdk.Action.withInput(
@@ -111,15 +163,19 @@ export const setModel = sdk.Action.withInput(
   inputSpec,
 
   // optionally pre-fill the input form
-  async ({ effects }) => {
-    const saved = await storeJson.read((s) => s.modelSelection).const(effects)
-    if (!saved || !(saved.selection in allVariants)) return {}
-    if (saved.selection === 'custom') {
+  async () => {
+    const saved = (await storeJson.read().once()) ?? {}
+    const selection = saved.modelSelection
+    if (!selection || !(selection.selection in allVariants)) {
+      return { env: saved.serveEnv ?? [] }
+    }
+    if (selection.selection === 'custom') {
       return {
         config: {
           selection: 'custom' as const,
-          value: { args: saved.customArgs ?? '' },
+          value: { args: selection.customArgs ?? '' },
         },
+        env: saved.serveEnv ?? [],
       }
     }
     // The SDK's prefill type is a discriminated union by `selection`; the
@@ -127,20 +183,45 @@ export const setModel = sdk.Action.withInput(
     // `selection` is just looked up in `allVariants` by key.
     return {
       config: {
-        selection: saved.selection as 'qwen36-35b-a3b',
+        selection: selection.selection as 'qwen36-35b-a3b',
         value: {},
       },
+      env: saved.serveEnv ?? [],
     }
   },
 
   // the execution function
   async ({ effects, input }) => {
     const config = input.config
+    const names = new Set<string>()
+    const serveEnv = input.env.map(({ name, value }) => {
+      if (!ENV_NAME.test(name)) {
+        throw new Error(
+          i18n(
+            'An environment variable name may contain only letters, digits and underscores, and may not start with a digit.',
+          ),
+        )
+      }
+      if (names.has(name)) {
+        throw new Error(
+          i18n('Each environment variable name may appear only once.'),
+        )
+      }
+      names.add(name)
+      return { name, value: value ?? '' }
+    })
+
     let serveArgs: string[]
     let modelSelection: { selection: string; customArgs?: string }
     if (config.selection === 'custom') {
-      serveArgs = config.value.args.split(/\s+/).filter(Boolean)
-      modelSelection = { selection: 'custom', customArgs: config.value.args }
+      serveArgs = parseServeArgs(config.value.args)
+      if (serveArgs.length === 0) {
+        throw new Error(i18n('The serve arguments must start with a model id.'))
+      }
+      modelSelection = {
+        selection: 'custom',
+        customArgs: config.value.args,
+      }
     } else {
       const { tier, memoryGB } = await detectHardware(effects)
       const model = models.find((m) => m.id === config.selection)
@@ -158,6 +239,6 @@ export const setModel = sdk.Action.withInput(
         : cfg.args
       modelSelection = { selection: config.selection }
     }
-    await storeJson.merge(effects, { serveArgs, modelSelection })
+    await storeJson.merge(effects, { serveArgs, serveEnv, modelSelection })
   },
 )
