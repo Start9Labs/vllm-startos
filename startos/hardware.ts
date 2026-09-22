@@ -10,9 +10,19 @@ export type HardwareTier =
 
 export type HardwareInfo = {
   tier: HardwareTier
-  /** Total accelerator memory in GiB; for NVIDIA, sum across all GPUs. For CPU, total system RAM. */
+  /** Accelerator memory in GiB: NVIDIA sums every GPU, AMD reports device 0. For CPU, total system RAM. */
   memoryGB: number
 }
+
+// vLLM loads onto device 0 alone — no preset sets --tensor-parallel-size — so this must not sum the GPUs.
+const AMD_VRAM_PROBE = `
+import amdsmi
+amdsmi.amdsmi_init()
+try:
+    print(amdsmi.amdsmi_get_gpu_memory_total(amdsmi.amdsmi_get_processor_handles()[0], amdsmi.AmdSmiMemoryType.VRAM))
+finally:
+    amdsmi.amdsmi_shut_down()
+`
 
 let cached: HardwareInfo | null = null
 
@@ -90,8 +100,33 @@ async function detect(effects: T.Effects): Promise<HardwareInfo> {
       `[detectHardware] nvidia-smi probe threw; falling back: ${err instanceof Error ? (err.stack ?? err.message) : String(err)}`,
     )
   }
-  // Either no NVIDIA GPU, or a unified-memory NVIDIA part (Spark/GB10)
-  // where per-GPU memory isn't reported. Either way, read system RAM.
+  // amdsmi ships only in the ROCm image; on the CUDA and CPU variants this probe fails and falls through.
+  if (nvidiaTier === null) {
+    try {
+      const result = await sdk.SubContainer.withTemp(
+        effects,
+        { imageId: 'vllm' },
+        sdk.Mounts.of(),
+        'detect-amd',
+        (sub) => sub.exec(['python3', '-c', AMD_VRAM_PROBE]),
+      )
+      if (result.exitCode === 0 && typeof result.stdout === 'string') {
+        const bytes = parseInt(result.stdout.trim(), 10)
+        if (Number.isFinite(bytes) && bytes > 0) {
+          return { tier: 'amd', memoryGB: Math.floor(bytes / 1024 ** 3) }
+        }
+      }
+      console.warn(
+        `[detectHardware] amdsmi probe did not yield VRAM; falling back. exitCode=${result.exitCode} stdout=${JSON.stringify(String(result.stdout))} stderr=${JSON.stringify(String(result.stderr))}`,
+      )
+    } catch (err) {
+      console.warn(
+        `[detectHardware] amdsmi probe threw; falling back: ${err instanceof Error ? (err.stack ?? err.message) : String(err)}`,
+      )
+    }
+  }
+  // Either no GPU, or a unified-memory NVIDIA part (Spark/GB10) where per-GPU
+  // memory isn't reported. Either way, read system RAM.
   try {
     const result = await sdk.SubContainer.withTemp(
       effects,
