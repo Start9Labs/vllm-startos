@@ -51,7 +51,7 @@ All three variants track one pinned upstream release, so they stay in lockstep. 
 
 **Integrated AMD GPUs are excluded on purpose.** The `rocm` requirement matches discrete families by product name — Navi, Radeon RX, Radeon VII, Instinct — because ROCm is unreliable on integrated Radeon; those machines fall back to `cpu`. It is a positive allowlist rather than an iGPU exclusion because StartOS's regex engine has no lookahead.
 
-**The service log never contains prompts or generated text.** The daemon appends `--no-enable-log-requests` after the user's `vllm serve` arguments, so it wins over anything set through Set Model, and vLLM refuses to start with `--enable-log-outputs` unless request logging is on. What the log carries is engine statistics, uvicorn access lines (path, status, client) and request IDs.
+**By default, the service log carries engine statistics, uvicorn access lines and request IDs, not prompts or generated text.** The daemon appends `--no-enable-log-requests` after the user's `vllm serve` arguments. Custom arguments or environment variables can still install response-logging middleware, including vLLM's `log_response` middleware, which writes generated text to the log.
 
 One oneshot, `ldconfig`, refreshes the linker cache before the daemon starts. The NVIDIA container toolkit mounts the host driver libraries into the container, but on some aarch64 images they land outside the cached search paths and Triton cannot find `libcuda.so.1` without this.
 
@@ -77,11 +77,11 @@ Two models, and the split between them is the interesting part.
 | `store.json`       | `main`   | JSON   | Yes — `FileHelper.json` | The Set Model action |
 | `credentials.json` | `public` | JSON   | Yes — `FileHelper.json` | Init                 |
 
-`store.json` holds the resolved `vllm serve` arguments and the preset selection behind them. `credentials.json` holds the API key alone.
+`store.json` holds the resolved `vllm serve` arguments, the environment variables to run them under, and the preset selection behind both. `credentials.json` holds the API key alone.
 
 **The API key regenerates whenever it is missing.** Init reads it reactively and writes a new one if it is absent — so deleting the key and restarting is how you rotate it, and Get API Key only ever displays whatever is there.
 
-**vLLM itself takes no configuration file.** Everything is command-line arguments built at daemon start, plus four environment variables: three point the HuggingFace cache at the volume and make its output unbuffered so downloads are visible in the service log, and `VLLM_NO_USAGE_STATS` stops vLLM reporting anonymous usage statistics to the vLLM project.
+**vLLM itself takes no configuration file.** Everything is command-line arguments built at daemon start, plus four environment variables: three point the HuggingFace cache at the volume and make its output unbuffered so downloads are visible in the service log, and `VLLM_NO_USAGE_STATS` stops vLLM reporting anonymous usage statistics to the vLLM project. Set Model may add environment variables for either a preset or Custom selection. They are spread over the three HuggingFace variables, so naming one of those replaces it, but not over `VLLM_NO_USAGE_STATS`, which always wins.
 
 ## Dependencies
 
@@ -117,11 +117,13 @@ Three actions, all available whether or not the service is running.
 
 Picks which model vLLM serves — a curated preset, or your own `vllm serve` arguments.
 
-- **What it changes:** `serveArgs` and the selection in `store.json`.
+- **What it changes:** `serveArgs`, `serveEnv` and the selection in `store.json`.
 - **Cost:** seconds to write, then a restart — and **a first-time model download plus load can take over half an hour.**
 - **Repeat safety:** idempotent. Re-selecting the same model is a no-op; the previous model's files stay cached.
 - **Presets are filtered to your hardware.** NVIDIA hosts get a list keyed to compute capability and the combined memory of every card; AMD hosts get the ROCm list sized to the first card's VRAM, the one vLLM loads onto; a host with no supported GPU uses Custom arguments.
 - **Custom arguments bypass that check.** They are passed to `vllm serve` as given, so a model too large for the hardware fails at load rather than being refused up front.
+- **Custom arguments are tokenized the way a shell tokenizes a command line** — `parseServeArgs` in `startos/actions/serveArgs.ts`. Whitespace separates arguments, single quotes are literal, double quotes take backslash escapes, a backslash escapes the next character, and a backslash before a newline continues the line. Quote removal is the whole of it: no variable, glob, brace, pipe or redirection is acted on. An unclosed quote or a trailing lone backslash fails the action, and the same condition is expressed as a form pattern so it fails before submission.
+- **Environment variables apply to presets and Custom alike.** The name/value list is validated against `^[A-Za-z_][A-Za-z0-9_]*$` and unique by name — an `HF_TOKEN` for a gated model, or a `VLLM_*` tuning flag. Values are masked in the form, stored as `serveEnv` and applied to the daemon's `exec.env`.
 
 ### Get API Key
 
@@ -168,7 +170,7 @@ The logs are worth reading during a start: the package makes vLLM's output unbuf
 
 Both volumes are backed up — `sdk.Backups.ofVolumes('main', 'public')` — with one exclusion: `setOptions({ exclude: ['models/'] })` leaves out `/data/models`, the HuggingFace hub cache. No dump step.
 
-- **Included:** the API key and the model selection.
+- **Included:** the API key, model selection and environment-variable values in `store.json`, including credentials such as `HF_TOKEN`.
 - **Excluded:** every downloaded model. Weights are re-downloadable from upstream, so the backup stays small rather than being dominated by the cache.
 - **Restore:** the API key is unchanged — dependent services keep working without reconfiguration. The selected model is downloaded again on the first start, which can take 30 minutes or more.
 
@@ -178,12 +180,12 @@ Both volumes are backed up — `sdk.Backups.ofVolumes('main', 'public')` — wit
 2. **No model is bundled**, and the service serves nothing until one is selected.
 3. **Integrated AMD GPUs fall back to the CPU variant** rather than attempting ROCm.
 4. **The ROCm and CPU variants are x86_64 only.** aarch64 exists for NVIDIA only.
-5. **Custom `vllm serve` arguments are not validated** against your hardware.
+5. **Custom `vllm serve` arguments are not validated** against your hardware beyond their quoting, and neither are environment variables. A variable named `HF_HUB_CACHE` replaces the package's default for HuggingFace files other than the model weights kept in `/data/models`.
 6. **Deleting a cached model does not clear the selection.**
 7. **The API key is on a volume other services can read.** That is deliberate, and it means any package granted that mount can use your inference endpoint.
 8. **The API key protects the `/v1`, `/v2`, `/inference` and `/cohere` prefixes only.** Other endpoints on the same port, `/invocations` and `/pause` among them, answer unauthenticated.
 9. **First start after selecting a model can take over half an hour**, and the health check will keep saying `loading` for up to 35 minutes before it treats that as a failure.
-10. **Request and output logging cannot be enabled.** `--enable-log-requests` and `--enable-log-outputs` in custom arguments are overridden and rejected respectively; usage-stats reporting to the vLLM project is off.
+10. **Custom middleware settings can log prompts and generated text.** `--no-enable-log-requests` keeps vLLM's built-in request logging off, but a `--middleware` argument or `VLLM_DEBUG_LOG_API_SERVER_RESPONSE=true` enables response-body logging; usage-stats reporting to the vLLM project stays off.
 
 ---
 
@@ -206,8 +208,8 @@ file_models:
 startos_managed_env_vars:
   - HF_HUB_CACHE
   - PYTHONUNBUFFERED
-  - HF_HUB_VERBOSITY
-  - VLLM_NO_USAGE_STATS # =1; request/output logging is pinned off via --no-enable-log-requests
+  - HF_HUB_VERBOSITY # any of the three is overridable by an env var of the same name
+  - VLLM_NO_USAGE_STATS # =1 and not overridable
 dependencies: []
 interfaces:
   api: { type: api, port: 8000 } # /v1, /v2, /inference, /cohere require the generated API key; other paths do not
