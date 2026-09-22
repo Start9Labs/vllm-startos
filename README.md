@@ -99,7 +99,7 @@ The port is bound on the `api-multi` MultiHost and is not masked.
 
 **Unlike upstream's default, the inference API requires a key.** It is passed to `vllm serve` at start, and it is the same key published on the `public` volume for dependent services to read.
 
-**The key does not cover the whole port.** vLLM authenticates the `/v1`, `/v2` and `/inference` prefixes only. Everything else the server exposes on port 8000 answers without a key, including `/invocations`, which runs the same inference as `/v1/chat/completions`, and `/pause`, which stops the engine serving. Treat the interface address as the boundary: give it out only to clients you would trust with the key, and read upstream's [security notes](https://docs.vllm.ai/en/latest/usage/security.html#api-key-authentication-limitations) for the full endpoint list.
+**The key does not cover the whole port.** vLLM authenticates the `/v1`, `/v2`, `/inference` and `/cohere` prefixes only. Everything else the server exposes on port 8000 answers without a key, including `/invocations`, which runs the same inference as `/v1/chat/completions`, and `/pause`, which stops the engine serving. Treat the interface address as the boundary: give it out only to clients you would trust with the key, and read upstream's [security notes](https://docs.vllm.ai/en/latest/usage/security.html#api-key-authentication-limitations) for the full endpoint list.
 
 ## Installation and First-Run Flow
 
@@ -120,7 +120,7 @@ Picks which model vLLM serves — a curated preset, or your own `vllm serve` arg
 - **What it changes:** `serveArgs` and the selection in `store.json`.
 - **Cost:** seconds to write, then a restart — and **a first-time model download plus load can take over half an hour.**
 - **Repeat safety:** idempotent. Re-selecting the same model is a no-op; the previous model's files stay cached.
-- **Presets are filtered to your hardware.** The package detects the accelerator tier and its memory, and offers only presets that fit — a Blackwell card, a Hopper card, older CUDA, ROCm, and CPU each see a different list.
+- **Presets are filtered to your hardware.** NVIDIA cards get a tier-specific list based on their capability and memory; ROCm and CPU use Custom arguments.
 - **Custom arguments bypass that check.** They are passed to `vllm serve` as given, so a model too large for the hardware fails at load rather than being refused up front.
 
 ### Get API Key
@@ -181,7 +181,7 @@ Both volumes are backed up — `sdk.Backups.ofVolumes('main', 'public')` — wit
 5. **Custom `vllm serve` arguments are not validated** against your hardware.
 6. **Deleting a cached model does not clear the selection.**
 7. **The API key is on a volume other services can read.** That is deliberate, and it means any package granted that mount can use your inference endpoint.
-8. **The API key protects the `/v1`, `/v2` and `/inference` prefixes only.** Other endpoints on the same port, `/invocations` and `/pause` among them, answer unauthenticated.
+8. **The API key protects the `/v1`, `/v2`, `/inference` and `/cohere` prefixes only.** Other endpoints on the same port, `/invocations` and `/pause` among them, answer unauthenticated.
 9. **First start after selecting a model can take over half an hour**, and the health check will keep saying `loading` for up to 35 minutes before it treats that as a failure.
 10. **Request and output logging cannot be enabled.** `--enable-log-requests` and `--enable-log-outputs` in custom arguments are overridden and rejected respectively; usage-stats reporting to the vLLM project is off.
 
@@ -210,7 +210,7 @@ startos_managed_env_vars:
   - VLLM_NO_USAGE_STATS # =1; request/output logging is pinned off via --no-enable-log-requests
 dependencies: []
 interfaces:
-  api: { type: api, port: 8000 } # /v1, /v2, /inference require the generated API key; other paths do not
+  api: { type: api, port: 8000 } # /v1, /v2, /inference, /cohere require the generated API key; other paths do not
 actions:
   - get-api-credentials
   - set-model

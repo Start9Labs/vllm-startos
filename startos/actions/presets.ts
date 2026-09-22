@@ -63,9 +63,6 @@ export type ModelPreset = {
 //                                   mode is off in the upstream chat template;
 //                                   we force it on via
 //                                   --default-chat-template-kwargs.
-//
-// Tool-call chat templates ship inside the vLLM image at
-// /vllm-workspace/examples/.
 
 export const models: ModelPreset[] = [
   {
@@ -420,7 +417,7 @@ export const models: ModelPreset[] = [
           '--tool-call-parser',
           'llama3_json',
           '--chat-template',
-          '/vllm-workspace/examples/tool_chat_template_llama3.2_json.jinja',
+          '/app/vllm/examples/tool_chat_template_llama3.2_json.jinja',
         ],
         minMemoryGB: 85,
         contextByMemory: [
@@ -604,7 +601,7 @@ export const models: ModelPreset[] = [
           '--tool-call-parser',
           'gemma4',
           '--chat-template',
-          '/vllm-workspace/examples/tool_chat_template_gemma4.jinja',
+          '/app/vllm/examples/tool_chat_template_gemma4.jinja',
           '--default-chat-template-kwargs',
           '{"enable_thinking":true}',
         ],
@@ -694,7 +691,7 @@ export const models: ModelPreset[] = [
           '--tool-call-parser',
           'gemma4',
           '--chat-template',
-          '/vllm-workspace/examples/tool_chat_template_gemma4.jinja',
+          '/app/vllm/examples/tool_chat_template_gemma4.jinja',
           '--default-chat-template-kwargs',
           '{"enable_thinking":true}',
         ],

@@ -35,6 +35,6 @@ Point any OpenAI-compatible client at the **vLLM API Server** interface address 
 
 ## Limitations
 
-- The API key covers the `/v1`, `/v2` and `/inference` paths. Other paths vLLM serves on the same port answer without it, among them `/invocations`, which runs inference just as `/v1/chat/completions` does, and `/pause`, which stops the engine serving. Share the interface address only with clients you would give the key to.
+- The API key covers the `/v1`, `/v2`, `/inference` and `/cohere` paths. Other paths vLLM serves on the same port answer without it, among them `/invocations`, which runs inference just as `/v1/chat/completions` does, and `/pause`, which stops the engine serving. Share the interface address only with clients you would give the key to.
 - The **Custom** model option splits your input on whitespace, so arguments whose values contain spaces (such as JSON-valued flags) won't survive. Use a preset when you need those.
 - vLLM's request and output logging stays off, so the service log never contains prompts or generated text. `--enable-log-requests` in **Custom** arguments is overridden, and `--enable-log-outputs` stops the service from starting.
