@@ -120,7 +120,7 @@ Picks which model vLLM serves — a curated preset, or your own `vllm serve` arg
 - **What it changes:** `serveArgs` and the selection in `store.json`.
 - **Cost:** seconds to write, then a restart — and **a first-time model download plus load can take over half an hour.**
 - **Repeat safety:** idempotent. Re-selecting the same model is a no-op; the previous model's files stay cached.
-- **Presets are filtered to your hardware.** NVIDIA cards get a tier-specific list based on their capability and memory; ROCm and CPU use Custom arguments.
+- **Presets are filtered to your hardware.** NVIDIA hosts get a list keyed to compute capability and the combined memory of every card; AMD hosts get the ROCm list sized to the first card's VRAM, the one vLLM loads onto; a host with no supported GPU uses Custom arguments.
 - **Custom arguments bypass that check.** They are passed to `vllm serve` as given, so a model too large for the hardware fails at load rather than being refused up front.
 
 ### Get API Key
