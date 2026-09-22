@@ -8,7 +8,6 @@ export const current = VersionInfo.of({
 - Adds support for DeepSeek V4.1 Flash, DeepSeek V4 Flash Vision, GLM 5.3 Flash, K2 Horizon, Cohere Compass, Bailing V3 VL and Nanbeige 4.2, alongside broad NVIDIA, AMD and CPU performance improvements.
 - Limits validation-error responses and client-supplied sparse embeddings to reduce denial-of-service risk.
 - Scale-out endpoints now require \`--enable-scale-out\`; custom configurations that use \`/render\`, \`/derender\` or \`/inference/v1/generate\` must add it. GPTQ activation ordering is no longer supported, and some YaRN models now derive shorter context limits.
-- Fixes Llama and Gemma tool-calling presets on AMD by making their bundled chat templates available with the ROCm image layout.
 - Documents that the API key also protects \`/cohere\`; unauthenticated endpoints on the same interface remain accessible.
 
 [Full upstream release notes](https://github.com/vllm-project/vllm/releases/tag/v0.30.0)`,
@@ -17,7 +16,6 @@ export const current = VersionInfo.of({
 - Añade compatibilidad con DeepSeek V4.1 Flash, DeepSeek V4 Flash Vision, GLM 5.3 Flash, K2 Horizon, Cohere Compass, Bailing V3 VL y Nanbeige 4.2, además de amplias mejoras de rendimiento para NVIDIA, AMD y CPU.
 - Limita las respuestas de errores de validación y los embeddings dispersos proporcionados por el cliente para reducir el riesgo de denegación de servicio.
 - Los endpoints de escalado ahora requieren \`--enable-scale-out\`; las configuraciones personalizadas que usan \`/render\`, \`/derender\` o \`/inference/v1/generate\` deben añadirlo. Ya no se admite el orden de activación de GPTQ y algunos modelos YaRN ahora calculan límites de contexto más cortos.
-- Corrige los preajustes de llamadas a herramientas de Llama y Gemma en AMD al hacer que sus plantillas de chat incluidas estén disponibles con la estructura de la imagen ROCm.
 - Documenta que la clave API también protege \`/cohere\`; los endpoints no autenticados de la misma interfaz siguen siendo accesibles.
 
 [Notas completas de upstream](https://github.com/vllm-project/vllm/releases/tag/v0.30.0)`,
@@ -26,7 +24,6 @@ export const current = VersionInfo.of({
 - Ergänzt Unterstützung für DeepSeek V4.1 Flash, DeepSeek V4 Flash Vision, GLM 5.3 Flash, K2 Horizon, Cohere Compass, Bailing V3 VL und Nanbeige 4.2 sowie umfassende Leistungsverbesserungen für NVIDIA, AMD und CPU.
 - Begrenzt Antworten auf Validierungsfehler und vom Client bereitgestellte Sparse Embeddings, um das Risiko von Denial-of-Service-Angriffen zu verringern.
 - Scale-out-Endpunkte erfordern nun \`--enable-scale-out\`; eigene Konfigurationen mit \`/render\`, \`/derender\` oder \`/inference/v1/generate\` müssen es ergänzen. GPTQ-Aktivierungsreihenfolgen werden nicht mehr unterstützt, und einige YaRN-Modelle leiten nun kürzere Kontextgrenzen ab.
-- Behebt die Llama- und Gemma-Voreinstellungen für Werkzeugaufrufe auf AMD, indem die mitgelieferten Chat-Vorlagen auch im ROCm-Image-Layout verfügbar gemacht werden.
 - Dokumentiert, dass der API-Schlüssel auch \`/cohere\` schützt; nicht authentifizierte Endpunkte derselben Schnittstelle bleiben erreichbar.
 
 [Vollständige Upstream-Versionshinweise](https://github.com/vllm-project/vllm/releases/tag/v0.30.0)`,
@@ -35,7 +32,6 @@ export const current = VersionInfo.of({
 - Dodaje obsługę DeepSeek V4.1 Flash, DeepSeek V4 Flash Vision, GLM 5.3 Flash, K2 Horizon, Cohere Compass, Bailing V3 VL i Nanbeige 4.2 oraz liczne ulepszenia wydajności dla NVIDIA, AMD i CPU.
 - Ogranicza rozmiar odpowiedzi z błędami walidacji oraz rozrzedzonych embeddingów dostarczanych przez klienta, aby zmniejszyć ryzyko odmowy usługi.
 - Punkty końcowe skalowania wymagają teraz \`--enable-scale-out\`; własne konfiguracje korzystające z \`/render\`, \`/derender\` lub \`/inference/v1/generate\` muszą go dodać. Kolejność aktywacji GPTQ nie jest już obsługiwana, a niektóre modele YaRN wyznaczają teraz krótsze limity kontekstu.
-- Naprawia ustawienia wywoływania narzędzi Llama i Gemma na AMD, udostępniając dołączone szablony czatu w układzie obrazu ROCm.
 - Dokumentuje, że klucz API chroni również \`/cohere\`; nieuwierzytelnione punkty końcowe tego samego interfejsu pozostają dostępne.
 
 [Pełne informacje o wydaniu upstream](https://github.com/vllm-project/vllm/releases/tag/v0.30.0)`,
@@ -44,7 +40,6 @@ export const current = VersionInfo.of({
 - Ajoute la prise en charge de DeepSeek V4.1 Flash, DeepSeek V4 Flash Vision, GLM 5.3 Flash, K2 Horizon, Cohere Compass, Bailing V3 VL et Nanbeige 4.2, ainsi que de nombreuses améliorations de performances pour NVIDIA, AMD et CPU.
 - Limite les réponses d'erreur de validation et les embeddings creux fournis par le client afin de réduire le risque de déni de service.
 - Les endpoints de mise à l'échelle nécessitent désormais \`--enable-scale-out\` ; les configurations personnalisées utilisant \`/render\`, \`/derender\` ou \`/inference/v1/generate\` doivent l'ajouter. L'ordre d'activation GPTQ n'est plus pris en charge et certains modèles YaRN calculent maintenant des limites de contexte plus courtes.
-- Corrige les préréglages d'appel d'outils Llama et Gemma sur AMD en rendant leurs modèles de chat intégrés disponibles avec l'organisation de l'image ROCm.
 - Indique que la clé API protège aussi \`/cohere\` ; les endpoints non authentifiés de la même interface restent accessibles.
 
 [Notes de version amont complètes](https://github.com/vllm-project/vllm/releases/tag/v0.30.0)`,

@@ -29,23 +29,11 @@ export const main = sdk.setupMain(async ({ effects }) => {
   // Refresh the linker cache so Triton can find the host-injected libcuda.so.1.
   // The nvidia-container-toolkit mounts driver libs into the container, but on
   // some aarch64 images they are not in the cached search paths.
-  const base = sdk.Daemons.of(effects)
-    .addOneshot('ldconfig', {
-      subcontainer: vllmSub,
-      exec: { command: ['ldconfig'] },
-      requires: [],
-    })
-    .addOneshot('prepare-chat-templates', {
-      subcontainer: vllmSub,
-      exec: {
-        command: [
-          'sh',
-          '-c',
-          'if [ -d /app/vllm/examples ] && [ ! -e /vllm-workspace/examples ]; then mkdir -p /vllm-workspace && ln -s /app/vllm/examples /vllm-workspace/examples; fi',
-        ],
-      },
-      requires: [],
-    })
+  const base = sdk.Daemons.of(effects).addOneshot('ldconfig', {
+    subcontainer: vllmSub,
+    exec: { command: ['ldconfig'] },
+    requires: [],
+  })
 
   if (!serveArgs || serveArgs.length === 0) {
     return base.addDaemon('primary', {
@@ -61,7 +49,7 @@ export const main = sdk.setupMain(async ({ effects }) => {
             ),
           }),
       },
-      requires: ['ldconfig', 'prepare-chat-templates'],
+      requires: ['ldconfig'],
     })
   }
 
@@ -120,6 +108,6 @@ export const main = sdk.setupMain(async ({ effects }) => {
         }
       },
     },
-    requires: ['ldconfig', 'prepare-chat-templates'],
+    requires: ['ldconfig'],
   })
 })

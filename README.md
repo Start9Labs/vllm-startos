@@ -53,7 +53,7 @@ All three variants track one pinned upstream release, so they stay in lockstep. 
 
 **The service log never contains prompts or generated text.** The daemon appends `--no-enable-log-requests` after the user's `vllm serve` arguments, so it wins over anything set through Set Model, and vLLM refuses to start with `--enable-log-outputs` unless request logging is on. What the log carries is engine statistics, uvicorn access lines (path, status, client) and request IDs.
 
-Two oneshots prepare the selected image before the daemon starts. `ldconfig` refreshes the linker cache because the NVIDIA container toolkit can mount the host driver libraries outside the cached search paths on aarch64, leaving Triton unable to find `libcuda.so.1`. `prepare-chat-templates` gives the ROCm image's `/app/vllm/examples` directory the `/vllm-workspace/examples` path used by the Llama and Gemma presets; the CUDA and CPU images already provide that path.
+One oneshot, `ldconfig`, refreshes the linker cache before the daemon starts. The NVIDIA container toolkit mounts the host driver libraries into the container, but on some aarch64 images they land outside the cached search paths and Triton cannot find `libcuda.so.1` without this.
 
 ## Volume and Data Layout
 
@@ -120,7 +120,7 @@ Picks which model vLLM serves — a curated preset, or your own `vllm serve` arg
 - **What it changes:** `serveArgs` and the selection in `store.json`.
 - **Cost:** seconds to write, then a restart — and **a first-time model download plus load can take over half an hour.**
 - **Repeat safety:** idempotent. Re-selecting the same model is a no-op; the previous model's files stay cached.
-- **Presets are filtered to your hardware.** The package detects the accelerator tier and its memory, and offers only presets that fit — a Blackwell card, a Hopper card, older CUDA, ROCm, and CPU each see a different list.
+- **Presets are filtered to your hardware.** NVIDIA cards get a tier-specific list based on their capability and memory; ROCm and CPU use Custom arguments.
 - **Custom arguments bypass that check.** They are passed to `vllm serve` as given, so a model too large for the hardware fails at load rather than being refused up front.
 
 ### Get API Key
