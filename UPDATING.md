@@ -10,7 +10,7 @@ All three are pinned to the single `VLLM_VERSION` constant in the manifest. Rele
 
 ## Steps
 
-1. Pick the new upstream release and confirm the tag exists for **all three** repos on Docker Hub (they publish in lockstep, but verify — a rebuild breaks if any one is missing):
+1. Pick the newest **stable** upstream release — `gh release view -R vllm-project/vllm --json tagName -q .tagName` skips pre-releases. Never pin a release candidate (`vX.Y.Zrc1`) or a nightly; a newer one of those is not an update. Confirm the tag exists for **all three** repos on Docker Hub (they publish in lockstep, but verify — a rebuild breaks if any one is missing):
 
    ```bash
    for repo in vllm/vllm-openai vllm/vllm-openai-rocm vllm/vllm-openai-cpu; do
@@ -21,6 +21,6 @@ All three are pinned to the single `VLLM_VERSION` constant in the manifest. Rele
 
 2. Bump **`VLLM_VERSION`** in `startos/manifest/index.ts` to the new tag (e.g. `v0.25.1`). This advances all three variants at once.
 
-3. Bump the version in **`startos/versions/current.ts`**: set the upstream half (left of the final `:`) to the new release in **ExVer** notation and reset the StartOS revision to `:0`. ExVer separates a pre-release's alpha and numeric parts as distinct dot-delimited identifiers, so tag `v0.25.1` → `0.25.1:0`, and `v0.26.0rc1` → `0.26.0-rc.1:0`. Rewrite the release notes.
+3. Bump the version in **`startos/versions/current.ts`**: set the upstream half (left of the final `:`) to the new release without the `v` and reset the StartOS revision to `:0` — tag `v0.25.1` → `0.25.1:0`. Rewrite the release notes.
 
 4. Confirm `vllm serve` still accepts the arguments passed in `startos/main.ts` and the stored `serveArgs` — upstream occasionally renames flags across minor releases.
