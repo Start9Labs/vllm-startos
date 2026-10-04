@@ -4,23 +4,33 @@ vLLM ships three variants in `startos/manifest/index.ts`, each packing one of vL
 
 - `nvidia` — `vllm/vllm-openai:<tag>` (x86_64 + aarch64)
 - `rocm` — `vllm/vllm-openai-rocm:<tag>` (x86_64 only; upstream publishes no arm64 ROCm image)
-- `cpu` — `vllm/vllm-openai-cpu:<tag>` (x86_64 only; arm64 CPU inference is impractically slow)
+- `cpu` — `vllm/vllm-openai-cpu:<tag>` (x86_64 only; this package does not offer arm64 CPU inference)
 
-All three are pinned to the single `VLLM_VERSION` constant in the manifest. Release tags (`vX.Y.Z`) are immutable and retained by Docker Hub indefinitely, so builds stay reproducible — unlike the ephemeral `nightly-<sha>` tags this package previously tracked, which Docker Hub garbage-collects, breaking rebuilds once a pin ages out.
+All three are pinned to the single `VLLM_VERSION` constant in the manifest. Release tags avoid the nightly-tag garbage collection that broke rebuilds of earlier pins. Verify availability and architecture coverage on every update.
 
-## Steps
+## Determining the upstream version
 
-1. Pick the newest **stable** upstream release — `gh release view -R vllm-project/vllm --json tagName -q .tagName` skips pre-releases. Never pin a release candidate (`vX.Y.Zrc1`) or a nightly; a newer one of those is not an update. Confirm the tag exists for **all three** repos on Docker Hub (they publish in lockstep, but verify — a rebuild breaks if any one is missing):
+1. Read the upstream tag list, not GitHub's Latest release:
+
+   ```bash
+   gh api 'repos/vllm-project/vllm/tags?per_page=100' --jq '.[].name'
+   ```
+
+   Pick the newest stable `vX.Y.Z` tag. Paginate if necessary. Never pin a release candidate (`vX.Y.Zrc1`) or a nightly. GitHub release entries can lag the stable tags and published images.
+
+2. Confirm the exact tag resolves for **all three** Docker Hub repositories, with `linux/amd64` in each and `linux/arm64` in the NVIDIA image. If any required artifact is absent, use the newest stable tag that meets these requirements:
 
    ```bash
    for repo in vllm/vllm-openai vllm/vllm-openai-rocm vllm/vllm-openai-cpu; do
-     curl -s -o /dev/null -w "$repo %{http_code}\n" \
-       "https://hub.docker.com/v2/repositories/$repo/tags/vX.Y.Z/"
+     curl -sS --fail "https://hub.docker.com/v2/repositories/$repo/tags/vX.Y.Z/" |
+       jq -e '{name, images: [.images[] | {os, architecture, digest}]}' || break
    done
    ```
 
-2. Bump **`VLLM_VERSION`** in `startos/manifest/index.ts` to the new tag (e.g. `v0.25.1`). This advances all three variants at once.
+3. Classify the change using upstream's [release policy](https://github.com/vllm-project/vllm/blob/main/docs/contributing/release_process.md) and the packaging guide's scrutiny tiers. Read the GitHub release notes when available; otherwise use the tag comparison. vLLM's regular releases advance the `0.x` minor component and can remove deprecated functionality, so they need the breaking-change pass.
 
-3. Bump the version in **`startos/versions/current.ts`**: set the upstream half (left of the final `:`) to the new release without the `v` and reset the StartOS revision to `:0` — tag `v0.25.1` → `0.25.1:0`. Rewrite the release notes.
+## Applying the bump
 
-4. Confirm `vllm serve` still accepts the arguments passed in `startos/main.ts` and the stored `serveArgs` — upstream occasionally renames flags across minor releases.
+1. Bump **`VLLM_VERSION`** in `startos/manifest/index.ts` to the verified tag. This advances all three variants at once.
+2. Set **`startos/versions/current.ts`** to the complete upstream version without the `v`, resetting the StartOS revision to `:0` — e.g. `v0.31.0` → `0.31.0:0`. Follow the guide's migration-file rule and check for an already-published version before writing it. Localize the release highlights and link the upstream notes or tag comparison.
+3. For regular releases, confirm `vllm serve` still accepts every argument in `startos/main.ts` and the presets in `startos/actions/presets.ts`, including their parser names and template paths. Check saved Custom arguments for upstream removals and explain required changes in the release notes. Re-verify cache paths, readiness, authentication and hardware probes against the tagged source. Add a migration only when persisted wrapper state needs transformation.

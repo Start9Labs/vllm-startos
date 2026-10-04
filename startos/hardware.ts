@@ -10,7 +10,7 @@ export type HardwareTier =
 
 export type HardwareInfo = {
   tier: HardwareTier
-  /** Accelerator memory in GiB: NVIDIA sums every GPU, AMD reports device 0. For CPU, total system RAM. */
+  /** Memory in GiB on device 0, or system RAM for CPU and unified-memory NVIDIA. */
   memoryGB: number
 }
 
@@ -76,17 +76,11 @@ async function detect(effects: T.Effects): Promise<HardwareInfo> {
             : major === 9
               ? 'nvidia-hopper'
               : 'nvidia-older'
-        // Sum memory across all GPUs (MiB → GiB). On unified-memory parts
-        // like the GB10 Spark, nvidia-smi reports `[N/A]` for memory.total,
-        // which makes the sum NaN — treat that as "no per-GPU memory
-        // reported" and fall through to the /proc/meminfo path below while
-        // keeping the GPU tier we just detected.
-        const perGpuMiB = lines.map((l) => parseInt(l[1] ?? '', 10))
-        if (perGpuMiB.every((m) => Number.isFinite(m))) {
-          const memoryGB = Math.floor(
-            perGpuMiB.reduce((sum, m) => sum + m / 1024, 0),
-          )
-          return { tier: nvidiaTier, memoryGB }
+        // Presets use device 0 without tensor parallelism.
+        // Unified-memory NVIDIA reports `[N/A]`; use system RAM below.
+        const deviceMiB = parseInt(lines[0][1] ?? '', 10)
+        if (Number.isFinite(deviceMiB) && deviceMiB > 0) {
+          return { tier: nvidiaTier, memoryGB: Math.floor(deviceMiB / 1024) }
         }
       }
     }
