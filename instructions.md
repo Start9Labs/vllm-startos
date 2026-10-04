@@ -19,7 +19,7 @@ vLLM does not serve anything until you choose a model. Until you run the **Set M
 
 Your API key is generated automatically — retrieve it from the **Get API Key** action whenever you connect a client; it isn't a required setup step.
 
-To change models later, run **Set Model** again; the service restarts with the new selection.
+To change models later, run **Set Model** again; the service restarts with the new selection. Presets use the first GPU's memory, not the combined memory of multiple cards. If an older selection fails to load, choose a smaller preset; additional cards are not used automatically.
 
 ## Using vLLM
 
@@ -37,6 +37,8 @@ Point any OpenAI-compatible client at the **vLLM API Server** interface address 
 
 - The API key covers the `/v1`, `/v2`, `/inference` and `/cohere` paths. Other paths vLLM serves on the same port answer without it, among them `/invocations`, which runs inference just as `/v1/chat/completions` does, and `/pause`, which stops the engine serving. Share the interface address only with clients you would give the key to.
 - The **Custom** model option quotes the way a shell does, so `--foo "a b"` and `--bar '{"k": 1}'` each stay a single argument. It splits the string into arguments and does nothing else: a `$VAR`, a `*` glob, a `|` or a `>` is handed to vLLM as written rather than acted on.
+- When updating a **Custom** selection, remove `--tokenizer-mode slow`, which upstream no longer supports. If you quantize an unquantized checkpoint at load time with `--quantization fp8`, replace it with `--quantization fp8_per_tensor`. Pre-quantized FP8 models are unaffected.
+- Multimodal requests cannot override `mm_processor_kwargs` or `media_io_kwargs` by default. If your trusted client requires these overrides, choose **Custom** and add `--trust-request-mm-kwargs`; this allows the client to change media-processing resource usage.
 - By default, the service log contains engine statistics, access lines and request IDs rather than prompts or generated text. Custom arguments and environment variables can enable response-logging middleware, so review them before sharing logs.
 - Environment variables apply to both preset and **Custom** selections. Their values are masked in the form and included in StartOS backups.
 - The package sets `HF_HUB_CACHE`, `PYTHONUNBUFFERED` and `HF_HUB_VERBOSITY` itself, and a variable you name replaces the one it sets. Model weights stay in `/data/models`; `HF_HUB_CACHE` changes the cache used for other HuggingFace files.
