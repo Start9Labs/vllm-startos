@@ -75,14 +75,16 @@ const inputSpec = InputSpec.of({
     const cached = await listCachedModels()
     return {
       name: i18n('Model'),
-      description: i18n('The downloaded model to remove from the cache.'),
+      description: i18n(
+        'Sizes are the disk space each model frees. A model still selected in Set Model is downloaded again the next time vLLM starts.',
+      ),
       values: Object.fromEntries(
         cached.map((model) => [
           model.dir,
           `${model.repoId} (${formatSize(model.size)})`,
         ]),
       ),
-      default: cached[0]?.dir ?? '',
+      default: null,
       disabled: cached.length ? false : i18n('No models are cached.'),
     }
   }),

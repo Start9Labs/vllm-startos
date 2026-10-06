@@ -1,16 +1,16 @@
 import { FileHelper, z } from '@start9labs/start-sdk'
 import { sdk } from '../sdk'
 
-const envVar = z.object({
+const envVar = z.looseObject({
   name: z.string(),
   value: z.string(),
 })
 
-const shape = z.object({
+const shape = z.looseObject({
   serveArgs: z.array(z.string()).optional().catch(undefined),
   serveEnv: z.array(envVar).optional().catch(undefined),
   modelSelection: z
-    .object({
+    .looseObject({
       selection: z.string(),
       customArgs: z.string().optional(),
     })

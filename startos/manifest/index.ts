@@ -17,18 +17,21 @@ const imageConfigs = {
   nvidia: {
     source: { dockerTag: `vllm/vllm-openai:${VLLM_VERSION}` },
     arch: ['x86_64', 'aarch64'],
+    emulateMissing: false,
     nvidiaContainer: true,
   },
   // vLLM's official ROCm serve image (amd64 only).
   rocm: {
     source: { dockerTag: `vllm/vllm-openai-rocm:${VLLM_VERSION}` },
     arch: ['x86_64'],
+    emulateMissing: false,
   },
   // vLLM's official CPU serve image. amd64 only, matching the arch scope of the
   // prior source-built cpu variant (arm64 CPU inference is impractically slow).
   cpu: {
     source: { dockerTag: `vllm/vllm-openai-cpu:${VLLM_VERSION}` },
     arch: ['x86_64'],
+    emulateMissing: false,
   },
 } as const
 
@@ -86,7 +89,6 @@ export const manifest = setupManifest({
   // legitimately distinguishes variants is hardwareRequirements below, which the
   // registry keys per-s9pk rather than comparing.
   hardwareAcceleration: true,
-  dependencies: {},
   hardwareRequirements: {
     device: [...(hwDevices[variant as keyof typeof hwDevices] ?? [])],
   },

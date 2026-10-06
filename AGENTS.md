@@ -18,15 +18,23 @@ Freshly scaffolded? Work the
 guide page, not a file in this repo — read it, don't copy it in.
 
 Keep `README.md` (technical reference for an AI support or administering agent) and
-`instructions.md` (end-user docs) in sync with your changes.
+`instructions.md` (end-user docs) in sync with your changes. This file restates neither:
+whoever changes the package has both, so it carries only what they don't — repo mechanics,
+a change that looks right and is not, where the next thing gets added, a naming trap, a
+build or test invocation particular to this repo.
 
-**Bugs and feature requests are GitHub issues on this repo** — file them as you find them.
+**Fix a defect you spot rather than reporting it** — you have the package open and the
+context to be sure. File **a GitHub issue on this repo** only when the call isn't yours to
+make: you can't pin the cause down, two defensible fixes exist, or it's too large to ride on
+the work in hand. An open issue is a report, not a queue — implement one when you're asked
+to or when it's labelled `Approved`, then close it with `Closes #<n>`.
+
 Don't record work in the repo instead: no `TODO.md`, no `NOTES.md`, no `PLAN.md`. What you
 verified, tried, and decided belongs in the commit message and the PR body.
 
 ## This repo
 
-- **The AMD GPU match must stay a positive allowlist.** StartOS's regex engine has no lookahead, so an iGPU exclusion cannot be expressed; the pattern names discrete families instead. Widening it to plain `Radeon` puts `rocm` on Ryzen APU graphics, where ROCm is unreliable.
-- **Don't cache a `cpu`/`0GB` hardware detection.** That result is the "everything failed" sentinel — caching it leaves every preset disabled in the Set Model form for the life of the process, even after a transient probe failure clears.
-- **The `ldconfig` oneshot is required on aarch64 NVIDIA.** The container toolkit mounts the host driver libs outside the cached search paths on some images, and Triton cannot find `libcuda.so.1` without the refresh.
-- **`credentials.json` lives on the `public` volume so dependents can mount it read-only.** Moving it into `main` breaks that contract — Open WebUI reads the key from there.
+- **Keep the AMD GPU match a positive allowlist; don't widen it to plain `Radeon`.** That puts `rocm` on Ryzen APU graphics, where ROCm is unreliable, and StartOS's regex engine has no lookahead to exclude them.
+- **Don't cache a `cpu`/`0GB` hardware detection.** It is the "everything failed" sentinel; caching it leaves every preset disabled in the Set Model form until the process restarts.
+- **Don't drop the `ldconfig` oneshot.** Without it Triton cannot find `libcuda.so.1` on aarch64 NVIDIA.
+- **Keep `credentials.json` on the `public` volume and `apiHostId`/`apiPort` exported from `startos/utils.ts`.** Open WebUI mounts the one and imports the others from this repo's `next` branch.

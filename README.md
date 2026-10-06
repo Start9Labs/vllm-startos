@@ -120,6 +120,7 @@ Picks which model vLLM serves — a curated preset, or your own `vllm serve` arg
 - **What it changes:** `serveArgs`, `serveEnv` and the selection in `store.json`.
 - **Cost:** seconds to write, then a restart — and **a first-time model download plus load can take over half an hour.**
 - **Repeat safety:** idempotent. Re-selecting the same model is a no-op; the previous model's files stay cached.
+- **The Configuration field's help** says why a preset can be disabled (not enough memory, or no build for the GPU) and that Custom is not checked against the hardware.
 - **Presets are filtered to your hardware.** NVIDIA and AMD hosts get a list sized to the first card's VRAM, the one vLLM loads onto; NVIDIA also uses that card's compute capability. Unified-memory NVIDIA uses system RAM instead. Presets do not enable tensor parallelism, so additional cards do not increase this budget. A host with no supported GPU uses Custom arguments.
 - **Custom arguments bypass that check.** They are passed to `vllm serve` as given, so a model too large for the hardware fails at load rather than being refused up front.
 - **Saved arguments are not re-resolved on update.** If a previous preset exceeded the first card's memory, run Set Model to choose a smaller preset. For Custom selections, remove the retired `--tokenizer-mode slow`; use `--quantization fp8_per_tensor` instead of `--quantization fp8` when quantizing an unquantized checkpoint at load time. Pre-quantized FP8 checkpoints still work.
@@ -138,10 +139,10 @@ Displays the API key.
 Removes a downloaded model's files from the cache.
 
 - **When to run it:** to reclaim disk space from a model you no longer serve.
-- **The form lists what is actually cached.** It reads the HuggingFace cache directories on the `main` volume — `models/`, which the daemon sees as `/data/models` — and offers each one labelled with its size on disk, so there is nothing to type and no way to name a model that isn't there. With an empty cache the field is disabled.
+- **The form lists what is actually cached.** It reads the HuggingFace cache directories on the `main` volume — `models/`, which the daemon sees as `/data/models` — and offers each one labelled with its size on disk, so there is nothing to type and no way to name a model that isn't there. Nothing is preselected, and with an empty cache the field is disabled.
 - **Cost:** seconds. The form walks the cache to size each model before it opens.
 - **This is permanent.** The model has to be downloaded again if you select it later.
-- **It does not change the selection**, so deleting the model currently being served leaves vLLM pointing at files that are gone.
+- **It does not change the selection**, so deleting the model currently being served makes vLLM download it again on its next start.
 
 ## Tasks
 
