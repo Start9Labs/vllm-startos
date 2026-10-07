@@ -15,7 +15,7 @@ const customVariant = {
     args: Value.text({
       name: i18n('vLLM serve arguments'),
       description: i18n(
-        'The full argument string passed after `vllm serve`. Starts with the model id, then any flags. Quoting works as it does in a shell, so `--foo "a b"` and `--bar \'{"k": 1}\'` each stay a single argument. Nothing is expanded — no variables, globs, pipes or redirection.',
+        'The full argument string passed after vllm serve. Starts with the model id, then any flags. Quoting works as it does in a shell, so --foo "a b" and --bar \'{"k": 1}\' each stay a single argument. Nothing is expanded — no variables, globs, pipes or redirection.',
       ),
       required: true,
       default: null,
@@ -36,10 +36,10 @@ const environmentVariables = Value.list(
     {
       name: i18n('Environment variables'),
       description: i18n(
-        'Environment variables for the `vllm serve` process — a HuggingFace token for a gated model, or a `VLLM_*` tuning flag. The package sets `HF_HUB_CACHE`, `PYTHONUNBUFFERED` and `HF_HUB_VERBOSITY`, and a variable named here replaces the one it sets.',
+        'Environment variables for the vllm serve process — a HuggingFace token for a gated model, or a VLLM_* tuning flag. The package sets HF_HUB_CACHE, PYTHONUNBUFFERED and HF_HUB_VERBOSITY, and a variable named here replaces the one it sets.',
       ),
       warning: i18n(
-        'The package keeps model weights in `/data/models`; `HF_HUB_CACHE` changes the cache used for other HuggingFace files.',
+        'The package keeps model weights in /data/models; HF_HUB_CACHE changes the cache used for other HuggingFace files.',
       ),
       default: [],
     },
@@ -133,6 +133,9 @@ const inputSpec = InputSpec.of({
       })?.id ?? 'custom'
     return {
       name: i18n('Configuration'),
+      description: i18n(
+        'A preset is disabled when the detected hardware lacks the memory for it or it has no build for that GPU. Custom takes your own vllm serve arguments, for any model vLLM supports, and is not checked against your hardware.',
+      ),
       variants: Variants.of(allVariants),
       default: defaultId as keyof typeof allVariants,
       disabled: disabledIds.length > 0 ? disabledIds : false,
@@ -149,7 +152,7 @@ export const setModel = sdk.Action.withInput(
   async ({ effects }) => ({
     name: i18n('Set Model'),
     description: i18n(
-      'Pick a curated preset (per Unsloth recommendations) or provide custom `vllm serve` arguments. The model will be downloaded on first startup if not already cached.',
+      'Pick a curated preset (per Unsloth recommendations) or provide custom vllm serve arguments. The model will be downloaded on first startup if not already cached.',
     ),
     warning: i18n(
       'Changing the model will restart the service and may require downloading a new model.',

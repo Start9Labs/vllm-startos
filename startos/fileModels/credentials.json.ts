@@ -7,7 +7,7 @@ import { sdk } from '../sdk'
  * the API key without having to invoke an action or scrape the main
  * volume.
  */
-const shape = z.object({
+const shape = z.looseObject({
   apiKey: z.string(),
 })
 

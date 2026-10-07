@@ -22,12 +22,12 @@ const dict = {
 
   // actions/setModel.ts
   'Set Model': 9,
-  'Pick a curated preset (per Unsloth recommendations) or provide custom `vllm serve` arguments. The model will be downloaded on first startup if not already cached.': 10,
+  'Pick a curated preset (per Unsloth recommendations) or provide custom vllm serve arguments. The model will be downloaded on first startup if not already cached.': 10,
   Model: 11,
   'Changing the model will restart the service and may require downloading a new model.': 13,
   Configuration: 20,
   'vLLM serve arguments': 21,
-  'The full argument string passed after `vllm serve`. Starts with the model id, then any flags. Quoting works as it does in a shell, so `--foo "a b"` and `--bar \'{"k": 1}\'` each stay a single argument. Nothing is expanded — no variables, globs, pipes or redirection.': 49,
+  'The full argument string passed after vllm serve. Starts with the model id, then any flags. Quoting works as it does in a shell, so --foo "a b" and --bar \'{"k": 1}\' each stay a single argument. Nothing is expanded — no variables, globs, pipes or redirection.': 49,
   'Every quote must be closed, and the string may not end with a lone backslash.': 50,
   'The serve arguments have an unterminated quote.': 51,
   'The serve arguments end with a lone backslash, which escapes nothing.': 52,
@@ -36,8 +36,8 @@ const dict = {
   'Each environment variable name may appear only once.': 55,
   Custom: 23,
   'Environment variables': 43,
-  'Environment variables for the `vllm serve` process — a HuggingFace token for a gated model, or a `VLLM_*` tuning flag. The package sets `HF_HUB_CACHE`, `PYTHONUNBUFFERED` and `HF_HUB_VERBOSITY`, and a variable named here replaces the one it sets.': 44,
-  'The package keeps model weights in `/data/models`; `HF_HUB_CACHE` changes the cache used for other HuggingFace files.': 45,
+  'Environment variables for the vllm serve process — a HuggingFace token for a gated model, or a VLLM_* tuning flag. The package sets HF_HUB_CACHE, PYTHONUNBUFFERED and HF_HUB_VERBOSITY, and a variable named here replaces the one it sets.': 44,
+  'The package keeps model weights in /data/models; HF_HUB_CACHE changes the cache used for other HuggingFace files.': 45,
   Name: 46,
   'May contain letters, digits and underscores, and may not start with a digit.': 47,
   Value: 48,
@@ -50,18 +50,18 @@ const dict = {
   'Nemotron 3 Elastic 30B-A3B': 32,
   'Gemma 4 31B Instruct': 33,
   'Gemma 4 26B-A4B Instruct': 34,
+  'A preset is disabled when the detected hardware lacks the memory for it or it has no build for that GPU. Custom takes your own vllm serve arguments, for any model vLLM supports, and is not checked against your hardware.': 56,
 
   // actions/deleteModelCache.ts
   'Delete Model Cache': 14,
   'Remove a downloaded model from the cache to free up disk space': 15,
-  'The downloaded model to remove from the cache.': 41,
+  'Sizes are the disk space each model frees. A model still selected in Set Model is downloaded again the next time vLLM starts.': 41,
   'No models are cached.': 42,
   'This will permanently delete the cached model files. The model will need to be re-downloaded if selected again.': 17,
   'Cache Deleted': 38,
   'Model cache for "${model}" has been deleted.': 39,
 
   // init/initializeService.ts
-  'Retrieve your API key so you can connect to vLLM': 18,
   'Select which AI model vLLM should serve': 19,
 } as const
 
