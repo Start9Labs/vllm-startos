@@ -36,6 +36,7 @@ export const getApiCredentials = sdk.Action.withoutInput(
         masked: true,
         copyable: true,
         qr: false,
+        launchable: false,
       },
     }
   },
