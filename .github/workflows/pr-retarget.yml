@@ -16,3 +16,5 @@ jobs:
     permissions:
       contents: read
     uses: Start9Labs/start-technologies/.github/workflows/build.yml@master
+    with:
+      FREE_DISK_SPACE: true

@@ -19,4 +19,6 @@ jobs:
     permissions:
       contents: read
     uses: Start9Labs/start-technologies/.github/workflows/build.yml@master
+    with:
+      FREE_DISK_SPACE: true
     # No DEV_KEY — a PR build doesn't publish, so it doesn't need the signing key.
