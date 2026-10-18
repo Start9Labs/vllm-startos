@@ -99,6 +99,8 @@ The port is bound on the `api-multi` MultiHost and is not masked.
 
 **Unlike upstream's default, the inference API requires a key.** It is passed to `vllm serve` at start, and it is the same key published on the `public` volume for dependent services to read.
 
+**Browser-origin permissions are configured through Custom arguments**, not through the API interface settings. The presets supply no CORS allowlist; a browser CORS error needs an explicit `--allowed-origins` list in the saved `serveArgs`. See `instructions.md` for the input format.
+
 **The key does not cover the whole port.** vLLM authenticates the `/v1`, `/v2`, `/inference` and `/cohere` prefixes only. Everything else the server exposes on port 8000 answers without a key, including `/invocations`, which runs the same inference as `/v1/chat/completions`, and `/pause`, which stops the engine serving. Treat the interface address as the boundary: give it out only to clients you would trust with the key, and read upstream's [security notes](https://docs.vllm.ai/en/latest/usage/security.html#api-key-authentication-limitations) for the full endpoint list.
 
 ## Installation and First-Run Flow
