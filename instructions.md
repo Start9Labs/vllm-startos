@@ -27,6 +27,8 @@ To change models later, run **Set Model** again; the service restarts with the n
 
 Point any OpenAI-compatible client at the **vLLM API Server** interface address with `/v1` appended as the base URL, and authenticate with the key from **Get API Key**. The usual endpoints (`/v1/chat/completions`, `/v1/completions`, `/v1/models`, …) work as documented upstream.
 
+For a browser app that connects directly to vLLM from another origin, use **Set Model → Custom** and include an explicit allowlist in your model arguments, for example `--allowed-origins '["https://chat.example.com"]'`. Replace the example with your browser app's origin. Cross-origin browser access is disabled without this list; server-to-server connections, including Open WebUI's backend, do not need it.
+
 ### Actions
 
 - **Set Model** — choose which model to serve, from a hardware-filtered preset list or custom arguments, and set environment variables such as an `HF_TOKEN` or a `VLLM_*` tuning flag. Restarts the service.
