@@ -35,7 +35,7 @@
 
 ## Image and Container Runtime
 
-Three variants, each packing one of vLLM's own prebuilt images, and **StartOS picks one for you** — the most hardware-specific variant compatible with the machine.
+Three variants, each packing one of vLLM's own prebuilt images, and **StartOS picks one for you** — the most hardware-specific variant compatible with the machine. Every variant's image goes through the root `Dockerfile`, which upgrades its CA store and points each `certifi` copy at it, until upstream ships images built on a fixed store.
 
 | Variant  | Image                   | Architectures   | Declared for                              |
 | -------- | ----------------------- | --------------- | ----------------------------------------- |
@@ -197,7 +197,7 @@ Both volumes are backed up — `sdk.Backups.ofVolumes('main', 'public')` — wit
 
 ```yaml
 package_id: vllm
-image: vllm/vllm-openai # -rocm and -cpu variants of the same upstream release
+image: vllm/vllm-openai # -rocm and -cpu variants of the same upstream release, each + root Dockerfile (CA store upgrade)
 architectures:
   - x86_64
   - aarch64 # nvidia variant only; rocm and cpu are x86_64
