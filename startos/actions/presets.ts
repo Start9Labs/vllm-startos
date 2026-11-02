@@ -1,5 +1,6 @@
 import type { I18nKey } from '../i18n/dictionaries/default'
 import type { HardwareTier } from '../hardware'
+import { qwen3Original } from '../utils'
 
 export type ContextStep = {
   /** Total accelerator memory (GiB) at which this context length kicks in. */
@@ -284,7 +285,7 @@ export const models: ModelPreset[] = [
     configs: {
       'nvidia-blackwell': {
         args: [
-          'RedHatAI/Qwen3-30B-A3B-NVFP4',
+          qwen3Original.nvfp4Model,
           '--gpu-memory-utilization',
           '0.9',
           '--reasoning-parser',
@@ -296,9 +297,7 @@ export const models: ModelPreset[] = [
         minMemoryGB: 25,
         contextByMemory: [
           { gb: 25, ctx: 32768 },
-          { gb: 40, ctx: 65536 },
-          { gb: 64, ctx: 131072 },
-          { gb: 96, ctx: 262144 },
+          { gb: 40, ctx: qwen3Original.maxContextLength },
         ],
       },
       'nvidia-hopper': {
@@ -333,7 +332,7 @@ export const models: ModelPreset[] = [
       },
       amd: {
         args: [
-          'RedHatAI/Qwen3-30B-A3B-FP8-dynamic',
+          qwen3Original.fp8Model,
           '--reasoning-parser',
           'qwen3',
           '--enable-auto-tool-choice',
@@ -343,9 +342,7 @@ export const models: ModelPreset[] = [
         minMemoryGB: 38,
         contextByMemory: [
           { gb: 38, ctx: 32768 },
-          { gb: 64, ctx: 65536 },
-          { gb: 96, ctx: 131072 },
-          { gb: 144, ctx: 262144 },
+          { gb: 64, ctx: qwen3Original.maxContextLength },
         ],
       },
     },

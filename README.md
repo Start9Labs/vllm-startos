@@ -35,7 +35,7 @@
 
 ## Image and Container Runtime
 
-Three variants, each packing one of vLLM's own prebuilt images, and **StartOS picks one for you** — the most hardware-specific variant compatible with the machine. Every variant's image goes through the root `Dockerfile`, which upgrades its CA store and points each `certifi` copy at it, until upstream ships images built on a fixed store.
+Three variants, each packing one of vLLM's own prebuilt images, and **StartOS picks one for you** — the most hardware-specific variant compatible with the machine.
 
 | Variant  | Image                   | Architectures   | Declared for                              |
 | -------- | ----------------------- | --------------- | ----------------------------------------- |
@@ -124,6 +124,7 @@ Picks which model vLLM serves — a curated preset, or your own `vllm serve` arg
 - **Repeat safety:** idempotent. Re-selecting the same model is a no-op; the previous model's files stay cached.
 - **The Configuration field's help** says why a preset can be disabled (not enough memory, or no build for the GPU) and that Custom is not checked against the hardware.
 - **Presets are filtered to your hardware.** NVIDIA and AMD hosts get a list sized to the first card's VRAM, the one vLLM loads onto; NVIDIA also uses that card's compute capability. Unified-memory NVIDIA uses system RAM instead. Presets do not enable tensor parallelism, so additional cards do not increase this budget. A host with no supported GPU uses Custom arguments.
+- **The original Qwen3 30B-A3B checkpoints on Blackwell and AMD have a 40,960-token context limit.** More memory does not extend it. Hopper and older NVIDIA use the separate Instruct-2507 checkpoint with its larger native context.
 - **Custom arguments bypass that check.** They are passed to `vllm serve` as given, so a model too large for the hardware fails at load rather than being refused up front.
 - **Saved arguments are not re-resolved on update.** If a previous preset exceeded the first card's memory, run Set Model to choose a smaller preset. For Custom selections, remove the retired `--tokenizer-mode slow`; use `--quantization fp8_per_tensor` instead of `--quantization fp8` when quantizing an unquantized checkpoint at load time. Pre-quantized FP8 checkpoints still work.
 - **Custom arguments are tokenized the way a shell tokenizes a command line** — `parseServeArgs` in `startos/actions/serveArgs.ts`. Whitespace separates arguments, single quotes are literal, double quotes take backslash escapes, a backslash escapes the next character, and a backslash before a newline continues the line. Quote removal is the whole of it: no variable, glob, brace, pipe or redirection is acted on. An unclosed quote or a trailing lone backslash fails the action, and the same condition is expressed as a form pattern so it fails before submission.
@@ -197,7 +198,7 @@ Both volumes are backed up — `sdk.Backups.ofVolumes('main', 'public')` — wit
 
 ```yaml
 package_id: vllm
-image: vllm/vllm-openai # -rocm and -cpu variants of the same upstream release, each + root Dockerfile (CA store upgrade)
+image: vllm/vllm-openai # -rocm and -cpu variants of the same upstream release
 architectures:
   - x86_64
   - aarch64 # nvidia variant only; rocm and cpu are x86_64

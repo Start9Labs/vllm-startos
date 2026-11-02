@@ -11,35 +11,25 @@ const mutable = <T>(value: T): Mutable<T> => value as Mutable<T>
 // bump versions/current.ts to match). Release tags are immutable and retained by
 // Docker Hub indefinitely, unlike the ephemeral `nightly-<sha>` tags they replaced
 // (which get garbage-collected, breaking rebuilds). See UPDATING.md.
-const VLLM_VERSION = 'v0.32.0'
+const VLLM_VERSION = 'v0.33.0'
 
 const imageConfigs = {
   nvidia: {
-    source: {
-      dockerBuild: { buildArgs: { IMAGE: `vllm/vllm-openai:${VLLM_VERSION}` } },
-    },
+    source: { dockerTag: `vllm/vllm-openai:${VLLM_VERSION}` },
     arch: ['x86_64', 'aarch64'],
     emulateMissing: false,
     nvidiaContainer: true,
   },
   // vLLM's official ROCm serve image (amd64 only).
   rocm: {
-    source: {
-      dockerBuild: {
-        buildArgs: { IMAGE: `vllm/vllm-openai-rocm:${VLLM_VERSION}` },
-      },
-    },
+    source: { dockerTag: `vllm/vllm-openai-rocm:${VLLM_VERSION}` },
     arch: ['x86_64'],
     emulateMissing: false,
   },
   // vLLM's official CPU serve image. amd64 only, matching the arch scope of the
   // prior source-built cpu variant (arm64 CPU inference is impractically slow).
   cpu: {
-    source: {
-      dockerBuild: {
-        buildArgs: { IMAGE: `vllm/vllm-openai-cpu:${VLLM_VERSION}` },
-      },
-    },
+    source: { dockerTag: `vllm/vllm-openai-cpu:${VLLM_VERSION}` },
     arch: ['x86_64'],
     emulateMissing: false,
   },

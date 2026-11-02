@@ -19,7 +19,7 @@ vLLM does not serve anything until you choose a model. Until you run the **Set M
 
 Your API key is generated automatically — retrieve it from the **Get API Key** action whenever you connect a client; it isn't a required setup step.
 
-To change models later, run **Set Model** again; the service restarts with the new selection. Presets use the first GPU's memory, not the combined memory of multiple cards. If an older selection fails to load, choose a smaller preset; additional cards are not used automatically.
+To change models later, run **Set Model** again; the service restarts with the new selection. Presets use the first GPU's memory, not the combined memory of multiple cards. If an older selection fails to load, choose a smaller preset; additional cards are not used automatically. The Qwen3 30B-A3B preset on Blackwell and AMD is capped at 40,960 tokens, even with more memory.
 
 ## Using vLLM
 
