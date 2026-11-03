@@ -75,11 +75,11 @@ Two models, and the split between them is the interesting part.
 | File               | Volume   | Format | Modelled                | Written by           |
 | ------------------ | -------- | ------ | ----------------------- | -------------------- |
 | `store.json`       | `main`   | JSON   | Yes — `FileHelper.json` | The Set Model action |
-| `credentials.json` | `public` | JSON   | Yes — `FileHelper.json` | Init                 |
+| `credentials.json` | `public` | JSON   | Yes — `FileHelper.json` | Init and Set Model   |
 
 `store.json` holds the `vllm serve` arguments that follow the model id, the environment variables to run them under, and the preset selection behind both. `credentials.json` holds the API key and `model` — the model id vLLM serves, and so the name clients send — or empty while no model is selected. It is the only place the model id is kept: the daemon runs `vllm serve <model> <serveArgs>`, and a dependent that reads it live follows a model change.
 
-**The API key regenerates whenever it is missing.** Init reads it reactively and writes a new one if it is absent — so deleting the key and restarting is how you rotate it, and Get API Key only ever displays whatever is there.
+**To rotate the API key, set only `apiKey` to `""` in `credentials.json` and restart.** Preserve `model` and the file itself; deleting the file also clears the selected model and leaves the service idle until Set Model runs again. Init reads the key reactively and regenerates it when empty. Get API Key only displays the stored key.
 
 **vLLM itself takes no configuration file.** Everything is command-line arguments built at daemon start, plus four environment variables: three point the HuggingFace cache at the volume and make its output unbuffered so downloads are visible in the service log, and `VLLM_NO_USAGE_STATS` stops vLLM reporting anonymous usage statistics to the vLLM project. Set Model may add environment variables for either a preset or Custom selection. They are spread over the three HuggingFace variables, so naming one of those replaces it, but not over `VLLM_NO_USAGE_STATS`, which always wins.
 
@@ -136,7 +136,7 @@ Picks which model vLLM serves — a curated preset, or your own `vllm serve` arg
 Displays the API key.
 
 - **Cost:** seconds. Changes nothing.
-- **To rotate it**, clear `credentials.json` and restart — init generates a new one. This action only ever shows what is currently there.
+- **To rotate it**, set only `apiKey` to `""` in `credentials.json` and restart — init generates a new key while preserving `model`. Do not delete the file. This action only displays the stored key.
 
 ### Delete Model Cache
 
