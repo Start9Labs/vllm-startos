@@ -66,7 +66,7 @@ Two volumes, and one of them exists to be read by other services.
 
 **Model weights dominate the `main` volume** — a single model is commonly tens of gigabytes, and the cache keeps every one you have downloaded until you delete it.
 
-The `public` volume holds only the API key, and it is there so a dependent service can mount it read-only and discover the key without invoking an action or reaching into the main volume.
+The `public` volume holds the API key and served model name, so a dependent service can mount it read-only and discover both without invoking an action or reaching into the main volume.
 
 ## File Models
 
@@ -77,7 +77,7 @@ Two models, and the split between them is the interesting part.
 | `store.json`       | `main`   | JSON   | Yes — `FileHelper.json` | The Set Model action |
 | `credentials.json` | `public` | JSON   | Yes — `FileHelper.json` | Init                 |
 
-`store.json` holds the resolved `vllm serve` arguments, the environment variables to run them under, and the preset selection behind both. `credentials.json` holds the API key and `model`, the name clients must send: the first `--served-model-name` if the serve arguments set one, else the model id they start with, or empty while no model is selected. Init keeps `model` in step with the serve arguments, so a dependent that reads it live follows a model change.
+`store.json` holds the resolved `vllm serve` arguments, the environment variables to run them under, and the preset selection behind both. `credentials.json` holds the API key and `model`, the name clients must send: the first alias from the last `--served-model-name` option (including underscore spellings), else the model id they start with, or empty while no model is selected. Init keeps `model` in step with the serve arguments, so a dependent that reads it live follows a model change.
 
 **The API key regenerates whenever it is missing.** Init reads it reactively and writes a new one if it is absent — so deleting the key and restarting is how you rotate it, and Get API Key only ever displays whatever is there.
 

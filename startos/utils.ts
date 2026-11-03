@@ -1,16 +1,17 @@
 export const apiPort = 8000
 export const apiHostId = 'api-multi'
 
-// The model name clients must send: the first --served-model-name, else the
-// model id that leads the serve arguments.
+// The first alias of the last --served-model-name takes precedence.
 export function servedModelName(serveArgs: string[]): string {
-  const i = serveArgs.findIndex(
-    (a) => a === '--served-model-name' || a.startsWith('--served-model-name='),
-  )
-  if (i < 0) return serveArgs[0] ?? ''
-  return serveArgs[i].includes('=')
-    ? serveArgs[i].slice(serveArgs[i].indexOf('=') + 1)
-    : (serveArgs[i + 1] ?? '')
+  for (let i = serveArgs.length - 1; i > 0; i--) {
+    const arg = serveArgs[i]
+    if (arg.split('=', 1)[0].replace(/_/g, '-') !== '--served-model-name') {
+      continue
+    }
+    const equals = arg.indexOf('=')
+    return equals < 0 ? (serveArgs[i + 1] ?? '') : arg.slice(equals + 1)
+  }
+  return serveArgs[0] ?? ''
 }
 
 export const qwen3Original = {
