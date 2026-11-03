@@ -7,6 +7,7 @@ const envVar = z.looseObject({
 })
 
 const shape = z.looseObject({
+  // The `vllm serve` arguments after the model id, which is in credentials.json.
   serveArgs: z.array(z.string()).optional().catch(undefined),
   serveEnv: z.array(envVar).optional().catch(undefined),
   modelSelection: z

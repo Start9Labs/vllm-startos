@@ -66,7 +66,7 @@ Two volumes, and one of them exists to be read by other services.
 
 **Model weights dominate the `main` volume** — a single model is commonly tens of gigabytes, and the cache keeps every one you have downloaded until you delete it.
 
-The `public` volume holds the API key and served model name, so a dependent service can mount it read-only and discover both without invoking an action or reaching into the main volume.
+The `public` volume holds the API key and the served model id, so a dependent service can mount it read-only and discover both without invoking an action or reaching into the main volume.
 
 ## File Models
 
@@ -77,7 +77,7 @@ Two models, and the split between them is the interesting part.
 | `store.json`       | `main`   | JSON   | Yes — `FileHelper.json` | The Set Model action |
 | `credentials.json` | `public` | JSON   | Yes — `FileHelper.json` | Init                 |
 
-`store.json` holds the resolved `vllm serve` arguments, the environment variables to run them under, and the preset selection behind both. `credentials.json` holds the API key and `model`, the name clients must send: the first alias from the last `--served-model-name` option (including underscore spellings), else the model id they start with, or empty while no model is selected. Init keeps `model` in step with the serve arguments, so a dependent that reads it live follows a model change.
+`store.json` holds the `vllm serve` arguments that follow the model id, the environment variables to run them under, and the preset selection behind both. `credentials.json` holds the API key and `model` — the model id vLLM serves, and so the name clients send — or empty while no model is selected. It is the only place the model id is kept: the daemon runs `vllm serve <model> <serveArgs>`, and a dependent that reads it live follows a model change.
 
 **The API key regenerates whenever it is missing.** Init reads it reactively and writes a new one if it is absent — so deleting the key and restarting is how you rotate it, and Get API Key only ever displays whatever is there.
 
@@ -119,13 +119,14 @@ Three actions, all available whether or not the service is running.
 
 Picks which model vLLM serves — a curated preset, or your own `vllm serve` arguments.
 
-- **What it changes:** `serveArgs`, `serveEnv` and the selection in `store.json`.
+- **What it changes:** `serveArgs`, `serveEnv` and the selection in `store.json`, and `model` in `credentials.json`.
 - **Cost:** seconds to write, then a restart — and **a first-time model download plus load can take over half an hour.**
 - **Repeat safety:** idempotent. Re-selecting the same model is a no-op; the previous model's files stay cached.
 - **The Configuration field's help** says why a preset can be disabled (not enough memory, or no build for the GPU) and that Custom is not checked against the hardware.
 - **Presets are filtered to your hardware.** NVIDIA and AMD hosts get a list sized to the first card's VRAM, the one vLLM loads onto; NVIDIA also uses that card's compute capability. Unified-memory NVIDIA uses system RAM instead. Presets do not enable tensor parallelism, so additional cards do not increase this budget. A host with no supported GPU uses Custom arguments.
 - **The original Qwen3 30B-A3B checkpoints on Blackwell and AMD have a 40,960-token context limit.** More memory does not extend it. Hopper and older NVIDIA use the separate Instruct-2507 checkpoint with its larger native context.
 - **Custom arguments bypass that check.** They are passed to `vllm serve` as given, so a model too large for the hardware fails at load rather than being refused up front.
+- **Custom arguments may not set `--served-model-name`** (in either spelling). Dependents call the model by the id they read from `credentials.json`, so a renamed model would reject them.
 - **Saved arguments are not re-resolved on update.** If a previous preset exceeded the first card's memory, run Set Model to choose a smaller preset. For Custom selections, remove the retired `--tokenizer-mode slow`; use `--quantization fp8_per_tensor` instead of `--quantization fp8` when quantizing an unquantized checkpoint at load time. Pre-quantized FP8 checkpoints still work.
 - **Custom arguments are tokenized the way a shell tokenizes a command line** — `parseServeArgs` in `startos/actions/serveArgs.ts`. Whitespace separates arguments, single quotes are literal, double quotes take backslash escapes, a backslash escapes the next character, and a backslash before a newline continues the line. Quote removal is the whole of it: no variable, glob, brace, pipe or redirection is acted on. An unclosed quote or a trailing lone backslash fails the action, and the same condition is expressed as a form pattern so it fails before submission.
 - **Environment variables apply to presets and Custom alike.** The name/value list is validated against `^[A-Za-z_][A-Za-z0-9_]*$` and unique by name — an `HF_TOKEN` for a gated model, or a `VLLM_*` tuning flag. Values are masked in the form, stored as `serveEnv` and applied to the daemon's `exec.env`.

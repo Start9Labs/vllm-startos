@@ -1,4 +1,6 @@
 import { IMPOSSIBLE, VersionInfo } from '@start9labs/start-sdk'
+import { credentialsJson } from '../fileModels/credentials.json'
+import { storeJson } from '../fileModels/store.json'
 
 export const current = VersionInfo.of({
   version: '0.33.0:1',
@@ -15,7 +17,14 @@ export const current = VersionInfo.of({
       "Les services qui se connectent à vLLM peuvent désormais lire le modèle qu'il sert, et ne vous demandent donc plus son nom.",
   },
   migrations: {
-    up: async ({ effects }) => {},
+    // The model id leaves the serve arguments for credentials.json.
+    up: async ({ effects }) => {
+      const args = await storeJson.read((s) => s.serveArgs).once()
+      if (!args?.length) return
+      const [model, ...serveArgs] = args
+      await credentialsJson.merge(effects, { model })
+      await storeJson.merge(effects, { serveArgs })
+    },
     down: IMPOSSIBLE,
   },
 })

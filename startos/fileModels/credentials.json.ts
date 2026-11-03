@@ -9,7 +9,7 @@ import { sdk } from '../sdk'
  */
 const shape = z.looseObject({
   apiKey: z.string(),
-  // The name vLLM answers to; '' while no model is selected.
+  // The model vLLM serves, and the name clients send; '' while none is selected.
   model: z.string().catch(''),
 })
 

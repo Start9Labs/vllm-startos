@@ -1,8 +1,10 @@
 import { i18n } from '../i18n'
 import { sdk } from '../sdk'
+import { credentialsJson } from '../fileModels/credentials.json'
 import { storeJson } from '../fileModels/store.json'
 import { detectHardware } from '../hardware'
 import { models } from './presets'
+import { isServedModelNameFlag } from '../utils'
 import { parseServeArgs, SERVE_ARGS_PATTERN } from './serveArgs'
 
 const { InputSpec, List, Value, Variants } = sdk
@@ -214,12 +216,19 @@ export const setModel = sdk.Action.withInput(
       return { name, value: value ?? '' }
     })
 
-    let serveArgs: string[]
+    let args: string[]
     let modelSelection: { selection: string; customArgs?: string }
     if (config.selection === 'custom') {
-      serveArgs = parseServeArgs(config.value.args)
-      if (serveArgs.length === 0) {
+      args = parseServeArgs(config.value.args)
+      if (args.length === 0) {
         throw new Error(i18n('The serve arguments must start with a model id.'))
+      }
+      if (args.some(isServedModelNameFlag)) {
+        throw new Error(
+          i18n(
+            'Leave out --served-model-name. Services that connect to vLLM call the model by its id.',
+          ),
+        )
       }
       modelSelection = {
         selection: 'custom',
@@ -237,11 +246,13 @@ export const setModel = sdk.Action.withInput(
       const step = [...cfg.contextByMemory]
         .reverse()
         .find((s) => memoryGB >= s.gb)
-      serveArgs = step
+      args = step
         ? [...cfg.args, '--max-model-len', String(step.ctx)]
         : cfg.args
       modelSelection = { selection: config.selection }
     }
+    const [model, ...serveArgs] = args
     await storeJson.merge(effects, { serveArgs, serveEnv, modelSelection })
+    await credentialsJson.merge(effects, { model })
   },
 )
