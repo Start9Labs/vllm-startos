@@ -33,6 +33,7 @@ const dict = {
   'The serve arguments end with a lone backslash, which escapes nothing.': 52,
   'An environment variable name may contain only letters, digits and underscores, and may not start with a digit.': 53,
   'The serve arguments must start with a model id.': 54,
+  'Leave out --served-model-name. Services that connect to vLLM call the model by its id.': 57,
   'Each environment variable name may appear only once.': 55,
   Custom: 23,
   'Environment variables': 43,

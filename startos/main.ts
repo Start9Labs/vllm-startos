@@ -7,7 +7,9 @@ import { apiPort } from './utils'
 export const main = sdk.setupMain(async ({ effects }) => {
   console.info(i18n('Starting vLLM!'))
 
-  const serveArgs = await storeJson.read((s) => s.serveArgs).const(effects)
+  const model = await credentialsJson.read((c) => c.model).const(effects)
+  const serveArgs =
+    (await storeJson.read((s) => s.serveArgs).const(effects)) ?? []
   const serveEnv = await storeJson.read((s) => s.serveEnv).const(effects)
 
   const apiKey = await credentialsJson.read((c) => c.apiKey).const(effects)
@@ -36,7 +38,7 @@ export const main = sdk.setupMain(async ({ effects }) => {
     requires: [],
   })
 
-  if (!serveArgs || serveArgs.length === 0) {
+  if (!model) {
     return base.addDaemon('primary', {
       subcontainer: vllmSub,
       exec: { command: ['sleep', 'infinity'] },
@@ -63,6 +65,7 @@ export const main = sdk.setupMain(async ({ effects }) => {
       command: [
         'vllm',
         'serve',
+        model,
         ...serveArgs,
         '--no-enable-log-requests',
         '--host',

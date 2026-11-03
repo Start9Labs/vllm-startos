@@ -1,7 +1,6 @@
 import { utils } from '@start9labs/start-sdk'
 import { setModel } from '../actions/setModel'
 import { credentialsJson } from '../fileModels/credentials.json'
-import { storeJson } from '../fileModels/store.json'
 import { i18n } from '../i18n'
 import { sdk } from '../sdk'
 
@@ -25,8 +24,8 @@ export const initializeService = sdk.setupOnInit(async (effects) => {
 
   // Prompt for a model whenever none is selected — covers first install and
   // guards against the selection being cleared from store.json.
-  const serveArgs = await storeJson.read((s) => s.serveArgs).const(effects)
-  if (!serveArgs || serveArgs.length === 0) {
+  const model = await credentialsJson.read((c) => c.model).const(effects)
+  if (!model) {
     await sdk.action.createOwnTask(effects, setModel, 'critical', {
       reason: i18n('Select which AI model vLLM should serve'),
     })
