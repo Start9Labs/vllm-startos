@@ -77,7 +77,7 @@ Two models, and the split between them is the interesting part.
 | `store.json`       | `main`   | JSON   | Yes — `FileHelper.json` | The Set Model action |
 | `credentials.json` | `public` | JSON   | Yes — `FileHelper.json` | Init                 |
 
-`store.json` holds the resolved `vllm serve` arguments, the environment variables to run them under, and the preset selection behind both. `credentials.json` holds the API key alone.
+`store.json` holds the resolved `vllm serve` arguments, the environment variables to run them under, and the preset selection behind both. `credentials.json` holds the API key and `model`, the name clients must send: the first `--served-model-name` if the serve arguments set one, else the model id they start with, or empty while no model is selected. Init keeps `model` in step with the serve arguments, so a dependent that reads it live follows a model change.
 
 **The API key regenerates whenever it is missing.** Init reads it reactively and writes a new one if it is absent — so deleting the key and restarting is how you rotate it, and Get API Key only ever displays whatever is there.
 
