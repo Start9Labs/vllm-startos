@@ -19,7 +19,7 @@ vLLM does not serve anything until you choose a model. Until you run the **Set M
 
 Your API key is generated automatically — retrieve it from the **Get API Key** action whenever you connect a client; it isn't a required setup step.
 
-To change models later, run **Set Model** again; the service restarts with the new selection. Presets use the first GPU's memory, not the combined memory of multiple cards. If an older selection fails to load, choose a smaller preset; additional cards are not used automatically. The Qwen3 30B-A3B preset on Blackwell and AMD is capped at 40,960 tokens, even with more memory.
+To change models later, run **Set Model** again; the service restarts with the new selection. Presets use the first GPU's memory, not the combined memory of multiple cards. If an older selection fails to load, choose a smaller preset; additional cards are not used automatically. The Qwen3 30B-A3B preset on Blackwell and AMD is capped at 40,960 tokens, even with more memory. The Qwen3.8 Flash Next preset is offered only on NVIDIA Blackwell GPUs with at least 90 GB of memory, such as the RTX PRO 6000 or DGX Spark, and downloads about 96 GB.
 
 ## Using vLLM
 
@@ -43,5 +43,6 @@ For a browser app that connects directly to vLLM from another origin, use **Set 
 - When updating a **Custom** selection, remove `--tokenizer-mode slow`, which upstream no longer supports. If you quantize an unquantized checkpoint at load time with `--quantization fp8`, replace it with `--quantization fp8_per_tensor`. Pre-quantized FP8 models are unaffected.
 - Multimodal requests cannot override `mm_processor_kwargs` or `media_io_kwargs` by default. If your trusted client requires these overrides, choose **Custom** and add `--trust-request-mm-kwargs`; this allows the client to change media-processing resource usage.
 - By default, the service log contains engine statistics, access lines and request IDs rather than prompts or generated text. Custom arguments and environment variables can enable response-logging middleware, so review them before sharing logs.
+- Without `--gpu-memory-utilization`, vLLM uses all of the GPU's memory. On a DGX Spark or other system where the GPU shares memory with StartOS, keep `--gpu-memory-utilization 0.9` (or lower) in **Custom** arguments.
 - Environment variables apply to both preset and **Custom** selections. Their values are masked in the form and included in StartOS backups.
 - The package sets `HF_HUB_CACHE`, `PYTHONUNBUFFERED` and `HF_HUB_VERBOSITY` itself, and a variable you name replaces the one it sets. Model weights stay in `/data/models`; `HF_HUB_CACHE` changes the cache used for other HuggingFace files.

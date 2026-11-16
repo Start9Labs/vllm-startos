@@ -49,6 +49,7 @@ export type ModelPreset = {
 //                                   <function=name><parameter=key>...</parameter>
 //                                   </function> XML; hermes silently passes it
 //                                   through as plain text)
+//   Qwen3.8 Flash Next            → qwen3_xml (per NVIDIA's model card)
 //   Qwen3 / Qwen3-Next            → hermes (older JSON-inside-<tool_call> format)
 //   Llama 3.3                     → llama3_json + tool_chat_template_llama3.2_json.jinja
 //   Mistral Small 3.2             → mistral (used together with
@@ -73,6 +74,8 @@ export const models: ModelPreset[] = [
       'nvidia-blackwell': {
         args: [
           'RedHatAI/Qwen3.6-35B-A3B-NVFP4',
+          '--gpu-memory-utilization',
+          '0.9',
           '--reasoning-parser',
           'qwen3',
           '--moe_backend',
@@ -280,6 +283,43 @@ export const models: ModelPreset[] = [
     },
   },
   {
+    // Blackwell only: NVIDIA supports the FP4-Local checkpoint on Blackwell alone.
+    // The 27 GiB PLE n-gram tables are read from the checkpoint on disk, which
+    // keeps them out of unified memory on DGX Spark; the rest is ~68 GiB.
+    id: 'qwen38-flash-next',
+    displayName: 'Qwen3.8 Flash Next',
+    configs: {
+      'nvidia-blackwell': {
+        args: [
+          'nvidia/Qwen3.8-Flash-Next-FP4-Local',
+          '--quantization',
+          'modelopt_mixed',
+          '--dtype',
+          'bfloat16',
+          '--engram-config',
+          '{"disk_offload":true}',
+          '--kv-cache-dtype',
+          'fp8',
+          '--gpu-memory-utilization',
+          '0.9',
+          '--max-num-seqs',
+          '8',
+          '--max-num-batched-tokens',
+          '4096',
+          '--speculative-config',
+          '{"method":"mtp","num_speculative_tokens":3}',
+          '--reasoning-parser',
+          'qwen3',
+          '--enable-auto-tool-choice',
+          '--tool-call-parser',
+          'qwen3_xml',
+        ],
+        minMemoryGB: 90,
+        contextByMemory: [{ gb: 90, ctx: 262144 }],
+      },
+    },
+  },
+  {
     id: 'qwen3-30b-a3b',
     displayName: 'Qwen3 30B-A3B',
     configs: {
@@ -434,6 +474,8 @@ export const models: ModelPreset[] = [
       'nvidia-blackwell': {
         args: [
           'RedHatAI/Mistral-Small-3.2-24B-Instruct-2506-NVFP4',
+          '--gpu-memory-utilization',
+          '0.9',
           '--tokenizer-mode',
           'mistral',
           '--enable-auto-tool-choice',

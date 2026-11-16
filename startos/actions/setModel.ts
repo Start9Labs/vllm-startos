@@ -86,6 +86,10 @@ const allVariants = {
     name: i18n('Qwen3-Next 80B-A3B'),
     spec: InputSpec.of({}),
   },
+  'qwen38-flash-next': {
+    name: i18n('Qwen3.8 Flash Next'),
+    spec: InputSpec.of({}),
+  },
   'qwen3-30b-a3b': {
     name: i18n('Qwen3 30B-A3B'),
     spec: InputSpec.of({}),
