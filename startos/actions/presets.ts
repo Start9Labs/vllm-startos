@@ -73,6 +73,8 @@ export const models: ModelPreset[] = [
       'nvidia-blackwell': {
         args: [
           'RedHatAI/Qwen3.6-35B-A3B-NVFP4',
+          '--gpu-memory-utilization',
+          '0.9',
           '--reasoning-parser',
           'qwen3',
           '--moe_backend',
@@ -434,6 +436,8 @@ export const models: ModelPreset[] = [
       'nvidia-blackwell': {
         args: [
           'RedHatAI/Mistral-Small-3.2-24B-Instruct-2506-NVFP4',
+          '--gpu-memory-utilization',
+          '0.9',
           '--tokenizer-mode',
           'mistral',
           '--enable-auto-tool-choice',
