@@ -45,7 +45,6 @@ const dict = {
   'Qwen3.6 35B-A3B': 24,
   'Qwen3.6 27B': 26,
   'Qwen3-Next 80B-A3B': 28,
-  'Qwen3.8 Flash Next': 58,
   'Qwen3 30B-A3B': 29,
   'Llama 3.3 70B Instruct': 30,
   'Mistral Small 3.2 24B Instruct': 31,
